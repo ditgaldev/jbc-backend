@@ -16,8 +16,8 @@ export const CONTRACTS = {
   PAYMENT_RECEIVER: import.meta.env.VITE_PAYMENT_RECEIVER_ADDRESS || '0x4064570fd15dd67281F1F410a7Ce3ee0B10fA422', // 默认使用管理员地址作为测试
 } as const;
 
-// API 基础 URL
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8787/api';
+// API 基础 URL - 从环境变量读取，默认使用生产环境地址
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://jbc-backend.dappweb.workers.dev/api';
 
 // 定价常量（测试价格，已降低）
 export const PRICING = {
