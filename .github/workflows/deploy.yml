@@ -1,33 +1,48 @@
-name: Deploy Frontend to Cloudflare Pages
+name: Deploy to Cloudflare
 
 on:
   push:
     branches:
       - main
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy Frontend
+    name: Deploy Backend and Frontend
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      # ========== 后端部署 ==========
+      - name: Setup Node.js (Backend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install backend dependencies
+        run: npm ci
+      
+      - name: Deploy Backend to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env production
+      
+      # ========== 前端部署 ==========
+      - name: Setup Node.js (Frontend)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       
-      - name: Install dependencies
+      - name: Install frontend dependencies
         working-directory: ./frontend
         run: npm ci
       
-      - name: Build
+      - name: Build Frontend
         working-directory: ./frontend
         run: npm run build
         env:
@@ -36,7 +51,7 @@ jobs:
           VITE_USDT_SEPOLIA_ADDRESS: ${{ secrets.VITE_USDT_SEPOLIA_ADDRESS }}
           VITE_PAYMENT_RECEIVER_ADDRESS: ${{ secrets.VITE_PAYMENT_RECEIVER_ADDRESS }}
       
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy Frontend to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
