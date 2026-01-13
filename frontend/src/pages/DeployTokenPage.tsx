@@ -261,7 +261,7 @@ export function DeployTokenPage() {
 
         try {
           console.log('[Frontend] Parsing pending data from sessionStorage...');
-          const { name: savedName, symbol: savedSymbol, supply: savedSupply, logoR2Key: savedLogoR2Key, chainId: savedChainId } = JSON.parse(pendingData);
+          const { name: savedName, symbol: savedSymbol, logoR2Key: savedLogoR2Key, chainId: savedChainId } = JSON.parse(pendingData);
 
           // 从交易收据中获取部署的代币地址
           // 工厂合约通常会发出 TokenDeployed 事件
@@ -325,7 +325,7 @@ export function DeployTokenPage() {
           if (!tokenAddress && publicClient) {
             try {
               console.log('[Frontend] Attempting to get token address from transaction return value...');
-              const tx = await publicClient.getTransaction({ hash: txHash as `0x${string}` });
+              await publicClient.getTransaction({ hash: txHash as `0x${string}` });
               // 注意：这里可能需要根据实际合约实现调整
               // 如果工厂合约的 deployToken 函数返回代币地址，可以通过模拟调用获取
             } catch (e) {

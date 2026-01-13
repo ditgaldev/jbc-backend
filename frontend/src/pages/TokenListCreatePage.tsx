@@ -10,7 +10,6 @@ import { CONTRACTS } from '@/config/contracts';
 import { formatAmount } from '@/lib/utils';
 import { createSIWEMessage, generateNonce } from '@/lib/siwe';
 import { useSignMessage } from 'wagmi';
-import { parseUnits } from 'viem';
 import { Loader2, AlertCircle, Wallet, Info, Coins, CheckCircle, Upload, X } from 'lucide-react';
 import { GeometricPattern } from '@/components/GeometricPattern';
 import { CHAIN_IDS } from '@/config/chains';

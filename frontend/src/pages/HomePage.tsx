@@ -16,7 +16,7 @@ export function HomePage() {
       const response = await apiClient.getDeployedTokens(
         address ? { deployerAddress: address } : undefined
       );
-      return response.data || [];
+      return Array.isArray(response.data) ? response.data : [];
     },
     enabled: !!isConnected && !!address,
   });
@@ -28,7 +28,7 @@ export function HomePage() {
       const response = await apiClient.getDApps(
         address ? { ownerAddress: address } : undefined
       );
-      return response.data || [];
+      return Array.isArray(response.data) ? response.data : [];
     },
     enabled: !!isConnected && !!address,
   });
@@ -40,7 +40,7 @@ export function HomePage() {
       const response = await apiClient.getListedTokens(
         address ? { submitterAddress: address } : undefined
       );
-      return response.data || [];
+      return Array.isArray(response.data) ? response.data : [];
     },
     enabled: !!isConnected && !!address,
   });

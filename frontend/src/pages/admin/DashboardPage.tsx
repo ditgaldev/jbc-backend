@@ -10,7 +10,7 @@ export function DashboardPage() {
     queryKey: ['admin-dapps'],
     queryFn: async () => {
       const response = await apiClient.getDApps();
-      return response.data || [];
+      return Array.isArray(response.data) ? response.data : [];
     },
   });
 
@@ -18,7 +18,7 @@ export function DashboardPage() {
     queryKey: ['admin-deployed-tokens'],
     queryFn: async () => {
       const response = await apiClient.getDeployedTokens();
-      return response.data || [];
+      return Array.isArray(response.data) ? response.data : [];
     },
   });
 
@@ -26,7 +26,7 @@ export function DashboardPage() {
     queryKey: ['admin-listed-tokens'],
     queryFn: async () => {
       const response = await apiClient.getListedTokens();
-      return response.data || [];
+      return Array.isArray(response.data) ? response.data : [];
     },
   });
 
