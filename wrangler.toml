@@ -1,0 +1,31 @@
+name = "jbc-backend"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "jbc-backend-prod"
+
+[env.development]
+name = "jbc-backend-dev"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "jbc-db"
+database_id = "a21346ac-24a9-4842-b270-ce69d3ea9cfc"
+
+# R2 Storage binding
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "jbc-storage"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "development"
+# Add your RPC endpoints and contract addresses here
+# BSC_RPC_URL = "https://bsc-dataseed.binance.org/"
+# ARBITRUM_RPC_URL = "https://arb1.arbitrum.io/rpc"
+# FACTORY_CONTRACT_ADDRESS = "0x..."
+# USDT_CONTRACT_ADDRESS = "0x..."
+

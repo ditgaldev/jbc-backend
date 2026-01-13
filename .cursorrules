@@ -1,0 +1,95 @@
+# Web3 B2B SaaS Platform - Cursor Rules
+
+## Project Context
+
+**Project Name:** Web3 B2B SaaS Platform
+
+**Description:** A decentralized application allowing users to deploy tokens, list DApps, and list tokens via smart contracts.
+
+**Technology Stack:**
+- **Frontend:** React, Vite, TypeScript, Tailwind CSS, Shadcn/UI
+- **Web3 Client:** Wagmi (v2), Viem, RainbowKit, TanStack Query
+- **Backend:** Cloudflare Workers (Hono Framework), Cloudflare D1 (SQLite), Cloudflare R2
+- **Smart Contracts:** Solidity, Hardhat/Foundry
+
+---
+
+## General Code Style
+
+- Use functional React components with Hooks
+- Strictly use TypeScript
+- Prefer `interface` over `type` for object definitions
+
+---
+
+## Frontend Architecture
+
+- **CRITICAL:** Do NOT use Next.js server actions
+- This is a **Client-Side Rendered (CSR)** app hosted on Cloudflare Pages
+- All backend logic must go through API calls to Cloudflare Workers
+- Never implement server-side rendering or server actions
+
+---
+
+## Web3 Interaction
+
+- Use `wagmi` hooks (`useWriteContract`, `useReadContract`) for blockchain interactions
+- Always handle 'user rejected request' errors gracefully
+- Ensure BigInt handling is correct for token decimals (18 decimals standard)
+- Use proper error handling for wallet connection and transaction failures
+
+---
+
+## UI/UX
+
+- Default to **Dark Mode** as per requirements
+- Use **Lucide-React** for icons
+- Ensure all inputs dealing with money (USDT/ETH) use proper formatting utils:
+  - Use `ethers.formatUnits` or `viem` equivalent
+  - Display currency values with appropriate decimal places
+  - Handle currency conversion and formatting consistently
+
+---
+
+## Backend (Cloudflare Workers)
+
+- Use **Hono.js** for routing in Workers
+- Use `drizzle-orm` or raw SQL for interacting with D1 database
+- **NEVER** expose private keys or secrets in the client-side code
+- Bindings for D1 and R2 should be accessed via `c.env`
+- Example: `c.env.DB` for D1, `c.env.R2` for R2 storage
+
+---
+
+## Business Logic - Token Launchpad
+
+- When generating the 'Deploy Token' feature:
+  - The frontend **MUST** call the Factory Contract directly
+  - **DO NOT** route token deployment through backend API
+  - The backend API is **ONLY** used to index the result AFTER the blockchain transaction is confirmed
+  - Backend should listen for events or poll for transaction confirmation before indexing
+
+---
+
+## Business Logic - Payments
+
+- Payment logic is **On-Chain** (USDT/ETH)
+- Backend services (like featuring a DApp) must verify the on-chain transaction hash before updating the database state
+- Always validate transaction:
+  - Check transaction hash exists on-chain
+  - Verify transaction amount matches required payment
+  - Confirm transaction is from the correct sender address
+  - Ensure transaction is confirmed (sufficient block confirmations)
+
+---
+
+## Additional Guidelines
+
+- Follow TypeScript strict mode
+- Use proper error boundaries in React components
+- Implement loading states for async operations
+- Use TanStack Query for data fetching and caching
+- Ensure proper wallet connection state management with RainbowKit
+- Validate all user inputs before submitting transactions
+- Use environment variables for configuration (chain IDs, contract addresses, etc.)
+

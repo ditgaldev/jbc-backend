@@ -1,0 +1,15 @@
+# Cloudflare Workers 环境变量示例
+# 复制此文件为 .dev.vars 并填入实际值
+
+# 环境
+ENVIRONMENT=development
+
+# RPC 端点
+BSC_RPC_URL=https://bsc-dataseed.binance.org/
+ARBITRUM_RPC_URL=https://arb1.arbitrum.io/rpc
+SEPOLIA_RPC_URL=https://rpc.sepolia.org
+
+# 合约地址
+FACTORY_CONTRACT_ADDRESS=0x...
+USDT_CONTRACT_ADDRESS=0x...
+
