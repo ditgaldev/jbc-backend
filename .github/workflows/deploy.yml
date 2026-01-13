@@ -30,6 +30,39 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env production
       
+      # ========== 数据库迁移（可选，已存在则跳过） ==========
+      - name: Run Database Migrations 1
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute jbc-db --file=src/db/migrations/0001_initial.sql --env production --remote
+        continue-on-error: true
+      
+      - name: Run Database Migrations 2
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute jbc-db --file=src/db/migrations/0002_set_admin.sql --env production --remote
+        continue-on-error: true
+      
+      - name: Run Database Migrations 3
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute jbc-db --file=src/db/migrations/0003_add_logo_to_tokens.sql --env production --remote
+        continue-on-error: true
+      
+      - name: Run Database Migrations 4
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute jbc-db --file=src/db/migrations/0004_add_sort_order.sql --env production --remote
+        continue-on-error: true
+      
       # ========== 前端部署 ==========
       - name: Setup Node.js (Frontend)
         uses: actions/setup-node@v4
