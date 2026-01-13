@@ -2,6 +2,63 @@
 
 本文档说明如何在 Cloudflare 上部署 MaToken 平台的前后端。
 
+## 自动部署（推荐）
+
+项目已配置 GitHub Actions 自动部署，推送到 `main` 分支后会自动部署前后端。
+
+### 前置配置
+
+1. **获取 Cloudflare API Token**
+   - 登录 Cloudflare Dashboard
+   - 进入 **My Profile** → **API Tokens**
+   - 点击 **Create Token**
+   - 使用 **Edit Cloudflare Workers** 模板，或自定义权限：
+     - Account: `Cloudflare Workers:Edit`
+     - Account: `Cloudflare Pages:Edit`
+     - Account: `Account:Read`
+     - Zone: `Zone:Read` (如果需要)
+   - 复制生成的 Token
+
+2. **获取 Account ID**
+   - 在 Cloudflare Dashboard 右侧边栏可以看到 Account ID
+
+3. **在 GitHub 配置 Secrets**
+   - 进入仓库 Settings → Secrets and variables → Actions
+   - 添加以下 Secrets：
+     ```
+     CLOUDFLARE_API_TOKEN=你的API Token
+     CLOUDFLARE_ACCOUNT_ID=你的Account ID
+     VITE_API_BASE_URL=https://你的workers-url/api
+     VITE_FACTORY_CONTRACT_ADDRESS=你的Factory合约地址
+     VITE_USDT_SEPOLIA_ADDRESS=0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238
+     VITE_PAYMENT_RECEIVER_ADDRESS=0x4064570fd15dd67281F1F410a7Ce3ee0B10fA422
+     ```
+
+4. **配置 Workers 环境变量**
+   - 使用 Wrangler CLI 或 Dashboard 设置：
+     ```bash
+     wrangler secret put JWT_SECRET --env production
+     wrangler secret put SEPOLIA_RPC_URL --env production  # 可选
+     ```
+
+### 自动部署流程
+
+- **后端部署**：当 `src/`、`package.json`、`wrangler.toml` 等文件变更时自动触发
+- **前端部署**：当 `frontend/` 目录文件变更时自动触发
+- **全量部署**：推送到 `main` 分支时，会先部署后端，再部署前端
+
+### 查看部署状态
+
+- 在 GitHub 仓库的 **Actions** 标签页查看部署状态
+- 部署成功后，后端会更新到 Cloudflare Workers
+- 前端会更新到 Cloudflare Pages
+
+---
+
+## 手动部署
+
+如果需要手动部署，请参考以下步骤。
+
 ## 目录结构
 
 ```
