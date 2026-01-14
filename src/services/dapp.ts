@@ -89,7 +89,7 @@ export async function featureDApp(
     // 验证支付
     const paymentVerified = await verifyPayment(
       request.paymentTxHash,
-      56,
+      request.chainId,
       'dapp_featured',
       ownerAddress,
       env.USDT_CONTRACT_ADDRESS || '',
@@ -115,7 +115,7 @@ export async function featureDApp(
       env.USDT_CONTRACT_ADDRESS || '',
       '500', // DAPP_FEATURED price
       'USDT',
-      56,
+      request.chainId,
       'dapp_featured',
       request.dappId.toString()
     );

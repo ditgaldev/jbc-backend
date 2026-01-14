@@ -104,15 +104,20 @@ dapps.post('/:id/feature', jwtAuth, async (c) => {
     return c.json({ success: false, error: 'Invalid DApp ID' }, 400);
   }
 
-  const body = await c.req.json<FeatureDAppRequest>();
+  const body = await c.req.json<{ paymentTxHash: string; chainId?: number }>();
 
   if (!body.paymentTxHash) {
     return c.json({ success: false, error: 'Missing payment transaction hash' }, 400);
   }
 
+  if (!body.chainId) {
+    return c.json({ success: false, error: 'Missing chain ID' }, 400);
+  }
+
   const request: FeatureDAppRequest = {
     dappId: id,
     paymentTxHash: body.paymentTxHash,
+    chainId: body.chainId,
   };
 
   const result = await featureDApp(db, request, userAddress, c.env);

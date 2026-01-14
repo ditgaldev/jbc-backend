@@ -32,6 +32,7 @@ export interface CreateDAppRequest {
 export interface FeatureDAppRequest {
   dappId: number;
   paymentTxHash: string; // 推荐位支付交易哈希
+  chainId: number; // 支付交易的链 ID
 }
 
 // 代币相关类型
@@ -133,11 +134,24 @@ export const PRICING = {
   TOKEN_PINNED: '999', // $999 USDT
 } as const;
 
-// 支持的链
+// 支持的链（EVM 兼容链）
 export const SUPPORTED_CHAINS = {
+  SEPOLIA: 11155111,
   BSC: 56,
   BSC_TESTNET: 97,
   ARBITRUM: 42161,
   ARBITRUM_SEPOLIA: 421614,
+  POLYGON: 137,
+  POLYGON_MUMBAI: 80001,
+  AVALANCHE: 43114,
+  AVALANCHE_FUJI: 43113,
+  OPTIMISM: 10,
+  OPTIMISM_SEPOLIA: 11155420,
+  BASE: 8453,
+  BASE_SEPOLIA: 84532,
+  LINEA: 59144,
+  LINEA_SEPOLIA: 59141,
+  ZKSYNC: 324,
+  ZKSYNC_SEPOLIA: 300,
 } as const;
 

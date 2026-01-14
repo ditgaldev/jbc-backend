@@ -12,6 +12,7 @@ name = "jbc-backend-dev"
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
+migrations_dir = "src/db/migrations"
 database_name = "jbc-db"
 database_id = "a21346ac-24a9-4842-b270-ce69d3ea9cfc"
 

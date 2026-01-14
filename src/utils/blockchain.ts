@@ -1,14 +1,44 @@
 import { createPublicClient, http, parseUnits, formatUnits, type Chain } from 'viem';
-import { bsc, bscTestnet, arbitrum, arbitrumSepolia, sepolia } from 'viem/chains';
+import {
+  bsc,
+  bscTestnet,
+  arbitrum,
+  arbitrumSepolia,
+  sepolia,
+  polygon,
+  polygonMumbai,
+  avalanche,
+  avalancheFuji,
+  optimism,
+  optimismSepolia,
+  base,
+  baseSepolia,
+  linea,
+  lineaSepolia,
+  zkSync,
+  zkSyncSepoliaTestnet,
+} from 'viem/chains';
 import type { Env } from '../types';
 
-// 支持的链配置
+// 支持的链配置（EVM 兼容链）
 const CHAIN_CONFIGS: Record<number, Chain> = {
-  56: bsc,
-  97: bscTestnet,
-  42161: arbitrum,
-  421614: arbitrumSepolia,
-  11155111: sepolia, // Ethereum Sepolia Testnet
+  11155111: sepolia,           // Ethereum Sepolia Testnet
+  56: bsc,                     // BSC Mainnet
+  97: bscTestnet,              // BSC Testnet
+  42161: arbitrum,             // Arbitrum One
+  421614: arbitrumSepolia,     // Arbitrum Sepolia
+  137: polygon,                // Polygon Mainnet
+  80001: polygonMumbai,        // Polygon Mumbai Testnet
+  43114: avalanche,            // Avalanche C-Chain
+  43113: avalancheFuji,        // Avalanche Fuji Testnet
+  10: optimism,                // Optimism Mainnet
+  11155420: optimismSepolia,   // Optimism Sepolia
+  8453: base,                  // Base Mainnet
+  84532: baseSepolia,          // Base Sepolia
+  59144: linea,                // Linea Mainnet
+  59141: lineaSepolia,         // Linea Sepolia
+  324: zkSync,                 // zkSync Era Mainnet
+  300: zkSyncSepoliaTestnet,   // zkSync Sepolia Testnet
 };
 
 /**
@@ -159,16 +189,41 @@ export async function verifyETHTransfer(
  * 获取 RPC URL
  */
 function getRpcUrl(chainId: number, env: Env): string | undefined {
+  // BSC
   if (chainId === 56 || chainId === 97) {
     return env.BSC_RPC_URL;
   }
+  // Arbitrum
   if (chainId === 42161 || chainId === 421614) {
     return env.ARBITRUM_RPC_URL;
   }
+  // Polygon
+  if (chainId === 137 || chainId === 80001) {
+    return env.POLYGON_RPC_URL;
+  }
+  // Avalanche
+  if (chainId === 43114 || chainId === 43113) {
+    return env.AVALANCHE_RPC_URL;
+  }
+  // Optimism
+  if (chainId === 10 || chainId === 11155420) {
+    return env.OPTIMISM_RPC_URL;
+  }
+  // Base
+  if (chainId === 8453 || chainId === 84532) {
+    return env.BASE_RPC_URL;
+  }
+  // Linea
+  if (chainId === 59144 || chainId === 59141) {
+    return env.LINEA_RPC_URL;
+  }
+  // zkSync
+  if (chainId === 324 || chainId === 300) {
+    return env.ZKSYNC_RPC_URL;
+  }
+  // Sepolia 测试网
   if (chainId === 11155111) {
-    // Sepolia 测试网，优先使用环境变量，否则使用公共 RPC
-    // 使用多个备选 RPC，如果第一个失败可以尝试其他
-    return env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org'; // 使用公共 Sepolia RPC
+    return env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org';
   }
   return undefined;
 }

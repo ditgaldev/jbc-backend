@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiClient } from '@/lib/api';
-import { Coins, Globe, Wallet, TrendingUp, Clock, CheckCircle, Settings, FileText } from 'lucide-react';
+import { Coins, Globe, Wallet, TrendingUp, Clock, CheckCircle, Settings, FileText, Package } from 'lucide-react';
 import { GeometricPattern } from '@/components/GeometricPattern';
 
 export function DashboardPage() {
@@ -156,6 +156,16 @@ export function DashboardPage() {
               >
                 <h3 className="font-semibold mb-1 text-white">收录管理</h3>
                 <p className="text-sm text-gray-400">管理代币收录</p>
+              </Link>
+              <Link
+                to="/admin/apk-upload"
+                className="p-4 border border-gray-800 rounded-lg hover:border-green-500/50 hover:bg-green-500/5 transition-all"
+              >
+                <h3 className="font-semibold mb-1 text-white flex items-center space-x-2">
+                  <Package className="h-4 w-4" />
+                  <span>APK 管理</span>
+                </h3>
+                <p className="text-sm text-gray-400">上传和管理 APK 文件</p>
               </Link>
               <Link
                 to="/admin/api-doc"

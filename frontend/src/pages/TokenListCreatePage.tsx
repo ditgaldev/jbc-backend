@@ -217,9 +217,17 @@ export function TokenListCreatePage() {
         return;
       }
 
+      // 检查当前连接的链是否匹配
+      if (chainId !== selectedChainId) {
+        alert(`请切换到链 ID ${selectedChainId} 的网络`);
+        return;
+      }
+
       // 使用 writeContractAsync 来触发钱包签名
+      // 确保传递 chainId 参数以触发正确的钱包签名
       const hash = await writeUSDTAsync({
         address: usdtAddress as `0x${string}`,
+        chainId: selectedChainId,
         abi: [
           {
             name: 'transfer',

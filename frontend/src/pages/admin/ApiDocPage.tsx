@@ -129,6 +129,27 @@ export function ApiDocPage() {
         ],
       },
     },
+    {
+      title: '获取最新 APK 下载 URL',
+      method: 'GET',
+      path: '/api/apk/latest',
+      description: '获取最新上传的 APK 文件的下载 URL 和相关信息',
+      auth: false,
+      queryParams: [],
+      example: `${API_BASE_URL}/apk/latest`,
+      response: {
+        success: true,
+        data: {
+          url: 'https://your-domain.com/api/upload/apk/1234567890-abc123.apk',
+          name: 'MyApp',
+          version: '1.0.0',
+          file_name: 'MyApp-v1.0.0.apk',
+          file_size: 52428800,
+          description: '应用描述',
+          uploaded_at: 1234567890,
+        },
+      },
+    },
   ];
 
   return (

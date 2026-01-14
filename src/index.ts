@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
 import { corsMiddleware } from './middleware/cors';
 import { errorHandler, notFoundHandler } from './middleware/error';
-import { migrationMiddleware } from './middleware/migration';
 import routes from './routes';
 import type { Env } from './types';
 
@@ -9,8 +8,6 @@ const app = new Hono<{ Bindings: Env }>();
 
 // 中间件
 app.use('*', corsMiddleware);
-// 数据库迁移中间件（自动检测并执行迁移）
-app.use('*', migrationMiddleware);
 
 // 路由
 app.route('/api', routes);

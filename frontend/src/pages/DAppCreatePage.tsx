@@ -41,6 +41,7 @@ export function DAppCreatePage() {
     data: usdtHash,
     isPending: isUSDTWriting,
     error: writeError,
+    reset: resetWriteContract,
   } = useWriteContract();
 
   const { isLoading: isUSDTConfirming, data: receipt } = useWaitForTransactionReceipt({
@@ -155,6 +156,11 @@ export function DAppCreatePage() {
       return;
     }
 
+    // 重置之前的错误状态
+    if (writeError) {
+      resetWriteContract();
+    }
+
     try {
       // 第一步：完成 SIWE 签名并登录获取 JWT
       const nonce = generateNonce();
@@ -210,36 +216,99 @@ export function DAppCreatePage() {
         return;
       }
 
-      // 使用 writeContractAsync 来触发钱包签名
-      const hash = await writeUSDTAsync({
-        address: usdtAddress as `0x${string}`,
-        abi: [
-          {
-            name: 'transfer',
-            type: 'function',
-            stateMutability: 'nonpayable',
-            inputs: [
-              { name: 'to', type: 'address' },
-              { name: 'amount', type: 'uint256' },
-            ],
-            outputs: [{ name: '', type: 'bool' }],
-          },
-        ],
-        functionName: 'transfer',
-        args: [paymentReceiver as `0x${string}`, PRICE],
+      // 验证钱包连接状态
+      if (!isConnected || !address || !chainId) {
+        alert('钱包未连接，请先连接钱包');
+        return;
+      }
+
+      console.log('[Frontend] Step 3: Preparing payment transaction...', {
+        usdtAddress,
+        paymentReceiver,
+        amount: PRICE.toString(),
+        chainId,
+        address,
+        isConnected,
+        writeUSDTAsync: typeof writeUSDTAsync,
       });
 
-      console.log('交易已发送，哈希:', hash);
+      // 检查 writeUSDTAsync 是否可用
+      if (!writeUSDTAsync || typeof writeUSDTAsync !== 'function') {
+        throw new Error('writeContractAsync 不可用，请检查钱包连接状态。请确保钱包已连接并解锁。');
+      }
+
+      // 验证所有参数
+      if (!usdtAddress || !paymentReceiver || !PRICE) {
+        throw new Error('支付参数不完整，请检查配置');
+      }
+
+      // 使用 writeContractAsync 来触发钱包签名
+      // wagmi v2 会自动使用当前连接的链，不需要显式传递 chainId
+      console.log('[Frontend] Calling writeUSDTAsync to trigger wallet signature...');
+      console.log('[Frontend] Contract call params:', {
+        address: usdtAddress,
+        functionName: 'transfer',
+        args: [paymentReceiver, PRICE.toString()],
+        chainId,
+        isConnected,
+      });
+      
+      // 确保在调用前钱包已就绪
+      if (isUSDTWriting) {
+        console.warn('[Frontend] 已有交易正在处理中，请等待...');
+        return;
+      }
+
+      try {
+        const hash = await writeUSDTAsync({
+          address: usdtAddress as `0x${string}`,
+          abi: [
+            {
+              name: 'transfer',
+              type: 'function',
+              stateMutability: 'nonpayable',
+              inputs: [
+                { name: 'to', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+              ],
+              outputs: [{ name: '', type: 'bool' }],
+            },
+          ],
+          functionName: 'transfer',
+          args: [paymentReceiver as `0x${string}`, PRICE],
+        });
+
+        console.log('[Frontend] Payment transaction sent, hash:', hash);
+      } catch (writeError: any) {
+        console.error('[Frontend] writeUSDTAsync error:', writeError);
+        // 重新抛出错误以便外层 catch 处理
+        throw writeError;
+      }
     } catch (error: any) {
-      console.error('Payment error:', error);
+      console.error('[Frontend] Payment error:', error);
+      console.error('[Frontend] Error details:', {
+        message: error?.message,
+        code: error?.code,
+        name: error?.name,
+        stack: error?.stack,
+      });
+      
       // 如果用户取消了签名或支付，清除保存的数据
       sessionStorage.removeItem('pendingDAppSubmission');
-      if (error?.message?.includes('User rejected') || error?.message?.includes('user rejected') || error?.message?.includes('rejected')) {
+      
+      // 检查是否是用户拒绝
+      if (
+        error?.message?.includes('User rejected') || 
+        error?.message?.includes('user rejected') || 
+        error?.message?.includes('rejected') ||
+        error?.code === 4001 ||
+        error?.code === 'ACTION_REJECTED'
+      ) {
         alert('用户取消了操作');
       } else if (error?.message) {
         alert(`支付失败: ${error.message}`);
       } else {
-        alert('支付失败，请重试');
+        alert(`支付失败，请重试。错误信息: ${JSON.stringify(error)}`);
       }
     }
   };

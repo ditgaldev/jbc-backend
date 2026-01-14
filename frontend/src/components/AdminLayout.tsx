@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Globe, Coins, Wallet, LogOut } from 'lucide-react';
+import { LayoutDashboard, Globe, Coins, Wallet, LogOut, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
@@ -11,6 +11,7 @@ export function AdminLayout() {
     { path: '/admin/dapps', label: 'DApp 管理', icon: Globe },
     { path: '/admin/tokens', label: '代币管理', icon: Coins },
     { path: '/admin/listed-tokens', label: '收录管理', icon: Wallet },
+    { path: '/admin/apk-upload', label: 'APK 管理', icon: Package },
   ];
 
   return (

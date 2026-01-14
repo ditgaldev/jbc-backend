@@ -288,11 +288,58 @@ class ApiClient {
     return data;
   }
 
-  async featureDApp(dappId: number, paymentTxHash: string) {
+  async featureDApp(dappId: number, paymentTxHash: string, chainId: number) {
     return this.authenticatedRequest(`/dapps/${dappId}/feature`, {
       method: 'POST',
-      body: JSON.stringify({ paymentTxHash }),
+      body: JSON.stringify({ paymentTxHash, chainId }),
     });
+  }
+
+  // APK 文件相关 API
+  async uploadApkFile(file: File, metadata?: { name?: string; version?: string; description?: string }) {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (metadata?.name) formData.append('name', metadata.name);
+    if (metadata?.version) formData.append('version', metadata.version);
+    if (metadata?.description) formData.append('description', metadata.description);
+
+    const headers: HeadersInit = {};
+    const token = this.getJWTToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const baseUrl = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
+    const url = `${baseUrl}/admin/apk/upload`;
+
+    if (!url || url === 'undefined' || !url.startsWith('http')) {
+      throw new Error(`Invalid API URL: ${url}. Please check API_BASE_URL configuration.`);
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.error || 'Upload failed',
+      };
+    }
+
+    return data;
+  }
+
+  async getApkFiles() {
+    return this.authenticatedRequest('/admin/apk/files', { method: 'GET' });
+  }
+
+  async deleteApkFile(id: number) {
+    return this.authenticatedRequest(`/admin/apk/files/${id}`, { method: 'DELETE' });
   }
 
   // 代币相关 API
