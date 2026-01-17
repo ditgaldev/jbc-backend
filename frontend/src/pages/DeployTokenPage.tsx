@@ -105,7 +105,7 @@ export function DeployTokenPage() {
     setSelectedChainId(newChainId);
     if (switchChain && chainId !== newChainId) {
       try {
-        await switchChain({ chainId: newChainId });
+        switchChain({ chainId: newChainId });
       } catch {
         alert(t('errors.manualSwitchChain'));
       }
@@ -164,7 +164,6 @@ export function DeployTokenPage() {
   useEffect(() => {
     const autoIndex = async () => {
       if (receipt && receipt.transactionHash && !deployedTokenAddress && address && publicClient) {
-        const txHash = receipt.transactionHash;
         const pendingData = sessionStorage.getItem('pendingTokenDeployment');
         if (!pendingData) return;
 
