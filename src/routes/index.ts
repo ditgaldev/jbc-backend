@@ -83,8 +83,7 @@ routes.get('/apk/latest', async (c) => {
     const latestApk = apkFiles[0];
     
     // 构建下载 URL
-    const baseUrl = c.req.url.split('/api')[0];
-    const downloadUrl = `${baseUrl}/api/upload/${latestApk.key}`;
+    const downloadUrl = `https://acb6471710adbd7e73a05cc665a6fb94.r2.cloudflarestorage.com/jbc-storage/${latestApk.key}`;
 
     return c.json({
       success: true,
