@@ -3,7 +3,6 @@ import users from './users';
 import dapps from './dapps';
 import tokens from './tokens';
 import admin from './admin';
-import upload from './upload';
 import type { Env } from '../types';
 
 const routes = new Hono<{ Bindings: Env }>();
