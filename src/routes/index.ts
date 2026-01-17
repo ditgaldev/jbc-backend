@@ -82,8 +82,9 @@ routes.get('/apk/latest', async (c) => {
 
     const latestApk = apkFiles[0];
     
-    // 构建下载 URL
-    const downloadUrl = `https://acb6471710adbd7e73a05cc665a6fb94.r2.cloudflarestorage.com/jbc-storage/${latestApk.key}`;
+    // 通过后端代理下载（不需要 R2 公开访问）
+    const baseUrl = c.req.url.split('/api')[0];
+    const downloadUrl = `${baseUrl}/api/apk/download/${encodeURIComponent(latestApk.fileName)}`;
 
     return c.json({
       success: true,
@@ -98,6 +99,33 @@ routes.get('/apk/latest', async (c) => {
   } catch (error) {
     console.error('Get latest APK error:', error);
     return c.json({ success: false, error: 'Failed to get latest APK' }, 500);
+  }
+});
+
+// APK 下载接口（代理 R2 文件）
+routes.get('/apk/download/:fileName', async (c) => {
+  const r2 = c.env.R2;
+  const fileName = c.req.param('fileName');
+  const key = `apk/${fileName}`;
+
+  try {
+    const object = await r2.get(key);
+
+    if (!object) {
+      return c.json({ success: false, error: 'File not found' }, 404);
+    }
+
+    // 设置响应头
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/vnd.android.package-archive');
+    headers.set('Content-Disposition', `attachment; filename="${fileName}"`);
+    headers.set('Content-Length', String(object.size));
+    headers.set('Cache-Control', 'public, max-age=86400');
+
+    return new Response(object.body, { headers });
+  } catch (error) {
+    console.error('APK download error:', error);
+    return c.json({ success: false, error: 'Download failed' }, 500);
   }
 });
 
