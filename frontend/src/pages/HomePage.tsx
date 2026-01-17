@@ -325,13 +325,13 @@ export function HomePage() {
                   <div className="flex justify-between">
                     <span className="text-gray-500">{t('home.updateTime')}</span>
                     <span className="text-white font-medium">
-                      {isLoadingApk ? '...' : latestApk?.uploaded_at ? formatDate(latestApk.uploaded_at) : '-'}
+                      {isLoadingApk ? '...' : latestApk?.uploadedAt ? formatDate(latestApk.uploadedAt) : '-'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">{t('home.fileSize')}</span>
                     <span className="text-white font-medium">
-                      {isLoadingApk ? '...' : latestApk?.file_size ? formatFileSize(latestApk.file_size) : '-'}
+                      {isLoadingApk ? '...' : latestApk?.fileSize ? formatFileSize(latestApk.fileSize) : '-'}
                     </span>
                   </div>
                 </div>

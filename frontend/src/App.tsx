@@ -11,7 +11,6 @@ import { DAppManagePage } from './pages/admin/DAppManagePage';
 import { TokenManagePage } from './pages/admin/TokenManagePage';
 import { ListedTokenManagePage } from './pages/admin/ListedTokenManagePage';
 import { ApiDocPage } from './pages/admin/ApiDocPage';
-import { ApkUploadPage } from './pages/admin/ApkUploadPage';
 
 function App() {
   return (
@@ -30,7 +29,6 @@ function App() {
         <Route path="admin/dapps" element={<DAppManagePage />} />
         <Route path="admin/tokens" element={<TokenManagePage />} />
         <Route path="admin/listed-tokens" element={<ListedTokenManagePage />} />
-        <Route path="admin/apk-upload" element={<ApkUploadPage />} />
         <Route path="admin/api-doc" element={<ApiDocPage />} />
       </Route>
     </Routes>

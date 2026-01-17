@@ -295,134 +295,14 @@ class ApiClient {
     });
   }
 
-  // APK 文件相关 API - 分块上传
-  async uploadApkFile(
-    file: File,
-    metadata?: { name?: string; version?: string; description?: string },
-    onProgress?: (progress: number) => void
-  ) {
-    // 分块大小：5MB（Cloudflare R2 multipart 最小分块大小是 5MB，最后一块可以更小）
-    const CHUNK_SIZE = 5 * 1024 * 1024;
-
-    try {
-      // 第一步：初始化上传
-      const initResponse = await this.authenticatedRequest<{
-        id: number;
-        r2Key: string;
-        uploadId: string;
-        name: string;
-        fileName: string;
-        fileSize: number;
-        version: string | null;
-        description: string | null;
-        downloadUrl: string;
-        uploadedAt: number;
-        uploadedBy: string;
-      }>('/admin/apk/upload', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: metadata?.name || file.name.replace('.apk', ''),
-          fileName: file.name,
-          fileSize: file.size,
-          version: metadata?.version,
-          description: metadata?.description,
-        }),
-      });
-
-      if (!initResponse.success || !initResponse.data) {
-        return initResponse;
-      }
-
-      const { id, uploadId } = initResponse.data;
-      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-      const uploadedParts: Array<{ partNumber: number; etag: string }> = [];
-
-      // 第二步：分块上传
-      for (let i = 0; i < totalChunks; i++) {
-        const start = i * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, file.size);
-        const chunk = file.slice(start, end);
-        const partNumber = i + 1;
-
-        const token = this.getJWTToken();
-        const baseUrl = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
-        const partUrl = `${baseUrl}/admin/apk/upload/${id}/part?uploadId=${encodeURIComponent(uploadId)}&partNumber=${partNumber}`;
-
-        const partResponse = await fetch(partUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
-          },
-          body: chunk,
-        });
-
-        if (!partResponse.ok) {
-          const errorData = await partResponse.json();
-          return {
-            success: false,
-            error: errorData.error || `Failed to upload part ${partNumber}`,
-          };
-        }
-
-        const partData = await partResponse.json() as { success: boolean; data?: { partNumber: number; etag: string } };
-        if (partData.success && partData.data) {
-          uploadedParts.push({
-            partNumber: partData.data.partNumber,
-            etag: partData.data.etag,
-          });
-        }
-
-        // 更新进度
-        if (onProgress) {
-          onProgress(Math.round(((i + 1) / totalChunks) * 100));
-        }
-      }
-
-      // 第三步：完成上传
-      const completeResponse = await this.authenticatedRequest('/admin/apk/upload/' + id + '/complete', {
-        method: 'POST',
-        body: JSON.stringify({
-          uploadId,
-          parts: uploadedParts,
-        }),
-      });
-
-      if (!completeResponse.success) {
-        return completeResponse;
-      }
-
-      // 返回完整的文件信息
-      return {
-        success: true,
-        data: initResponse.data,
-      };
-    } catch (error) {
-      console.error('APK upload error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Upload failed',
-      };
-    }
-  }
-
-  async getApkFiles() {
-    return this.authenticatedRequest('/admin/apk/files', { method: 'GET' });
-  }
-
-  async deleteApkFile(id: number) {
-    return this.authenticatedRequest(`/admin/apk/files/${id}`, { method: 'DELETE' });
-  }
-
-  // 获取最新 APK 信息（公开接口）
+  // 获取最新 APK 信息（公开接口，从 R2 读取）
   async getLatestApk() {
     return this.request<{
       url: string | null;
-      name: string | null;
       version: string | null;
-      file_name?: string;
-      file_size?: number;
-      description?: string | null;
-      uploaded_at: number | null;
+      fileName: string | null;
+      fileSize: number | null;
+      uploadedAt: number | null;
     }>('/apk/latest', { method: 'GET' });
   }
 
