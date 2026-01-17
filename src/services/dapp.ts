@@ -232,3 +232,28 @@ export async function updateDAppSortOrder(
   }
 }
 
+/**
+ * 更新 DApp 推荐位状态（管理员操作，无需支付）
+ */
+export async function updateDAppFeatured(
+  db: D1Database,
+  id: number,
+  featured: boolean
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 检查 DApp 是否存在
+    const dapp = await getDAppById(db, id);
+    if (!dapp) {
+      return { success: false, error: 'DApp not found' };
+    }
+
+    // 更新推荐位状态
+    await db.prepare('UPDATE dapps SET is_featured = ? WHERE id = ?').bind(featured ? 1 : 0, id).run();
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating DApp featured status:', error);
+    return { success: false, error: 'Internal server error' };
+  }
+}
+

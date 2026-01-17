@@ -3,6 +3,9 @@ node_modules/
 .pnp
 .pnp.js
 
+.kiro
+.cursor
+.vscode
 # Testing
 coverage/
 

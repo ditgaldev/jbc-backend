@@ -6,33 +6,14 @@ import { Label } from '@/components/ui/label';
 import { apiClient } from '@/lib/api';
 import { formatAddress, formatDate } from '@/lib/utils';
 import { CheckCircle, XCircle, Clock, Star, ExternalLink, Globe, Save } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { GeometricPattern } from '@/components/GeometricPattern';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { useSignMessage } from 'wagmi';
-import { CONTRACTS, PRICING } from '@/config/contracts';
-import { createSIWEMessage, generateNonce } from '@/lib/siwe';
-
-const TOKEN_DECIMALS = 6;
-const FEATURE_PRICE = BigInt(PRICING.DAPP_FEATURED) * BigInt(10 ** TOKEN_DECIMALS);
 
 export function DAppManagePage() {
   const queryClient = useQueryClient();
-  const { address, isConnected, chainId } = useAccount();
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [sortOrderEdits, setSortOrderEdits] = useState<Record<number, number>>({});
   const [featuringDAppId, setFeaturingDAppId] = useState<number | null>(null);
-  
-  const { signMessageAsync } = useSignMessage();
-  const {
-    writeContractAsync: writeUSDTAsync,
-    data: usdtHash,
-    isPending: isUSDTWriting,
-  } = useWriteContract();
-  
-  const { isLoading: isUSDTConfirming, data: receipt } = useWaitForTransactionReceipt({
-    hash: usdtHash,
-  });
 
   const { data: dapps, isLoading } = useQuery({
     queryKey: ['admin-dapps-all'],
@@ -70,6 +51,22 @@ export function DAppManagePage() {
     },
   });
 
+  const updateDAppFeatured = useMutation({
+    mutationFn: async ({ id, featured }: { id: number; featured: boolean }) => {
+      const response = await apiClient.updateDAppFeatured(id, featured);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-dapps-all'] });
+      setFeaturingDAppId(null);
+    },
+    onError: (error: any) => {
+      console.error('Feature DApp error:', error);
+      alert('设置推荐位失败');
+      setFeaturingDAppId(null);
+    },
+  });
+
   const handleApprove = (id: number) => {
     setProcessingId(id);
     updateDAppStatus.mutate({ id, status: 'active' });
@@ -90,105 +87,11 @@ export function DAppManagePage() {
     updateDAppSortOrder.mutate({ id, sortOrder });
   };
 
-  // 设置推荐位（需要支付）
-  const handleFeatureDApp = async (dappId: number) => {
-    if (!isConnected || !address || !chainId) {
-      alert('请先连接钱包');
-      return;
-    }
-
-    try {
-      setFeaturingDAppId(dappId);
-
-      // 第一步：完成 SIWE 签名并登录获取 JWT
-      const nonce = generateNonce();
-      const message = await createSIWEMessage(
-        address,
-        chainId,
-        window.location.host,
-        nonce
-      );
-      
-      const signature = await signMessageAsync({ message });
-      const loginResponse = await apiClient.login(message, signature);
-      
-      if (!loginResponse.success || !loginResponse.data?.token) {
-        throw new Error(loginResponse.error || '登录失败，无法获取 JWT token');
-      }
-
-      // 第二步：支付
-      const usdtAddress = CONTRACTS.USDT[chainId as keyof typeof CONTRACTS.USDT];
-      if (!usdtAddress || usdtAddress === '') {
-        alert('当前链不支持该代币，请切换到 Sepolia 测试网');
-        return;
-      }
-
-      const paymentReceiver = CONTRACTS.PAYMENT_RECEIVER;
-      if (!paymentReceiver || paymentReceiver === '') {
-        alert('支付接收地址未配置，请联系管理员');
-        return;
-      }
-
-      const hash = await writeUSDTAsync({
-        address: usdtAddress as `0x${string}`,
-        chainId: chainId,
-        abi: [
-          {
-            name: 'transfer',
-            type: 'function',
-            stateMutability: 'nonpayable',
-            inputs: [
-              { name: 'to', type: 'address' },
-              { name: 'amount', type: 'uint256' },
-            ],
-            outputs: [{ name: '', type: 'bool' }],
-          },
-        ],
-        functionName: 'transfer',
-        args: [paymentReceiver as `0x${string}`, FEATURE_PRICE],
-      });
-
-      console.log('推荐位支付交易已发送，哈希:', hash);
-    } catch (error: any) {
-      console.error('Feature DApp error:', error);
-      setFeaturingDAppId(null);
-      if (error?.message?.includes('User rejected') || error?.message?.includes('user rejected') || error?.message?.includes('rejected')) {
-        alert('用户取消了操作');
-      } else if (error?.message) {
-        alert(`设置推荐位失败: ${error.message}`);
-      } else {
-        alert('设置推荐位失败，请重试');
-      }
-    }
+  // 设置/取消推荐位（管理员操作，无需支付）
+  const handleToggleFeatured = (dappId: number, currentFeatured: boolean) => {
+    setFeaturingDAppId(dappId);
+    updateDAppFeatured.mutate({ id: dappId, featured: !currentFeatured });
   };
-
-  // 当支付交易确认后，自动提交推荐位设置
-  useEffect(() => {
-    const autoFeature = async () => {
-      if (receipt && receipt.transactionHash && featuringDAppId) {
-        const txHash = receipt.transactionHash;
-        console.log('[Admin] Feature payment confirmed, transaction hash:', txHash);
-
-        try {
-          const response = await apiClient.featureDApp(featuringDAppId, txHash, chainId!);
-          
-          if (response.success) {
-            alert('推荐位设置成功！');
-            queryClient.invalidateQueries({ queryKey: ['admin-dapps-all'] });
-          } else {
-            alert(response.error || '设置推荐位失败，但支付已成功');
-          }
-        } catch (error: any) {
-          console.error('[Admin] Feature DApp error:', error);
-          alert('设置推荐位失败，但支付已成功。支付已转到: ' + CONTRACTS.PAYMENT_RECEIVER);
-        } finally {
-          setFeaturingDAppId(null);
-        }
-      }
-    };
-
-    autoFeature();
-  }, [receipt, featuringDAppId, chainId, queryClient]);
 
   if (isLoading) {
     return <div className="text-center py-12">加载中...</div>;
@@ -317,8 +220,8 @@ export function DAppManagePage() {
                         <div className="flex items-center space-x-2 pt-4 border-t border-gray-800">
                           {!dapp.is_featured ? (
                             <Button
-                              onClick={() => handleFeatureDApp(dapp.id)}
-                              disabled={featuringDAppId === dapp.id || isUSDTWriting || isUSDTConfirming}
+                              onClick={() => handleToggleFeatured(dapp.id, false)}
+                              disabled={featuringDAppId === dapp.id || updateDAppFeatured.isPending}
                               size="sm"
                               className="bg-yellow-500 hover:bg-yellow-600 text-white"
                             >
@@ -326,10 +229,16 @@ export function DAppManagePage() {
                               {featuringDAppId === dapp.id ? '处理中...' : '设置推荐位'}
                             </Button>
                           ) : (
-                            <div className="flex items-center space-x-2 text-yellow-400">
-                              <Star className="h-4 w-4 fill-yellow-400" />
-                              <span className="text-sm">已设置推荐位</span>
-                            </div>
+                            <Button
+                              onClick={() => handleToggleFeatured(dapp.id, true)}
+                              disabled={featuringDAppId === dapp.id || updateDAppFeatured.isPending}
+                              size="sm"
+                              variant="outline"
+                              className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10"
+                            >
+                              <Star className="mr-2 h-4 w-4 fill-yellow-400" />
+                              {featuringDAppId === dapp.id ? '处理中...' : '取消推荐位'}
+                            </Button>
                           )}
                         </div>
                       )}

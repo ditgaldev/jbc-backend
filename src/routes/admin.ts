@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { jwtAuth } from '../middleware/auth';
-import { getDAppById, updateDAppStatus, updateDAppSortOrder } from '../services/dapp';
+import { getDAppById, updateDAppStatus, updateDAppSortOrder, updateDAppFeatured } from '../services/dapp';
 import { updateDeployedTokenSortOrder, updateListedTokenSortOrder } from '../services/token';
 import { setUserRole } from '../services/user';
 import type { Env } from '../types';
@@ -71,6 +71,29 @@ admin.put('/dapps/:id/sort-order', async (c) => {
   }
 
   return c.json({ success: true, message: 'DApp sort order updated' });
+});
+
+// 设置 DApp 推荐位（管理员操作，无需支付）
+admin.put('/dapps/:id/featured', async (c) => {
+  const db = c.env.DB;
+  const id = parseInt(c.req.param('id'));
+  const body = await c.req.json<{ featured: boolean }>();
+
+  if (isNaN(id)) {
+    return c.json({ success: false, error: 'Invalid DApp ID' }, 400);
+  }
+
+  if (typeof body.featured !== 'boolean') {
+    return c.json({ success: false, error: 'Invalid featured value' }, 400);
+  }
+
+  const result = await updateDAppFeatured(db, id, body.featured);
+
+  if (!result.success) {
+    return c.json({ success: false, error: result.error }, 400);
+  }
+
+  return c.json({ success: true, message: body.featured ? 'DApp featured' : 'DApp unfeatured' });
 });
 
 // 更新已部署代币的排序顺序

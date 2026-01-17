@@ -12,6 +12,7 @@ import { createSIWEMessage, generateNonce } from '@/lib/siwe';
 import { useSignMessage } from 'wagmi';
 import { Loader2, AlertCircle, Globe, Info, Wallet, Upload, X, CheckCircle } from 'lucide-react';
 import { GeometricPattern } from '@/components/GeometricPattern';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const PRICING = {
   DAPP_LISTING: '1', // 测试价格：1 代币
@@ -22,6 +23,7 @@ const TOKEN_DECIMALS = 6;
 const PRICE = BigInt(PRICING.DAPP_LISTING) * BigInt(10 ** TOKEN_DECIMALS);
 
 export function DAppCreatePage() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { address, isConnected, chainId } = useAccount();
   const [name, setName] = useState('');
@@ -61,12 +63,12 @@ export function DAppCreatePage() {
     if (file) {
       // 验证文件类型
       if (!file.type.startsWith('image/')) {
-        alert('请选择图片文件');
+        alert(t('common.selectImageFile'));
         return;
       }
       // 验证文件大小（5MB）
       if (file.size > 5 * 1024 * 1024) {
-        alert('文件大小不能超过 5MB');
+        alert(t('common.fileTooLarge'));
         return;
       }
       
@@ -90,14 +92,14 @@ export function DAppCreatePage() {
             console.log('[Frontend] Logo uploaded successfully:', response.data.key);
           } else {
             console.error('[Frontend] Upload failed:', response.error);
-            alert(response.error || '上传失败，请重试');
+            alert(response.error || t('common.uploadFailed'));
             // 上传失败时清除文件
             setLogoFile(null);
             setLogoPreview(null);
           }
         } catch (error: any) {
           console.error('[Frontend] Upload error:', error);
-          alert('上传失败，请重试');
+          alert(t('common.uploadFailed'));
           // 上传失败时清除文件
           setLogoFile(null);
           setLogoPreview(null);
@@ -147,12 +149,12 @@ export function DAppCreatePage() {
   const handlePaymentAndSubmit = async () => {
     // 验证表单
     if (!name || !url || !category) {
-      alert('请填写必填字段');
+      alert(t('dapp.fillRequired'));
       return;
     }
 
     if (!isConnected || !address || !chainId) {
-      alert('请先连接钱包');
+      alert(t('common.connectWallet'));
       return;
     }
 
@@ -188,7 +190,7 @@ export function DAppCreatePage() {
       const loginResponse = await apiClient.login(message, signature);
       
       if (!loginResponse.success || !loginResponse.data?.token) {
-        throw new Error(loginResponse.error || '登录失败，无法获取 JWT token');
+        throw new Error(loginResponse.error || t('errors.loginFailed'));
       }
       
       console.log('[Frontend] Login successful, JWT token obtained and saved');
@@ -206,19 +208,19 @@ export function DAppCreatePage() {
 
       const usdtAddress = CONTRACTS.USDT[chainId as keyof typeof CONTRACTS.USDT];
       if (!usdtAddress || usdtAddress === '') {
-        alert('当前链不支持该代币，请切换到 Sepolia 测试网');
+        alert(t('errors.chainNotSupported'));
         return;
       }
 
       const paymentReceiver = CONTRACTS.PAYMENT_RECEIVER;
       if (!paymentReceiver || paymentReceiver === '') {
-        alert('支付接收地址未配置，请联系管理员');
+        alert(t('errors.paymentReceiverNotConfigured'));
         return;
       }
 
       // 验证钱包连接状态
       if (!isConnected || !address || !chainId) {
-        alert('钱包未连接，请先连接钱包');
+        alert(t('errors.walletNotConnected'));
         return;
       }
 
@@ -234,12 +236,12 @@ export function DAppCreatePage() {
 
       // 检查 writeUSDTAsync 是否可用
       if (!writeUSDTAsync || typeof writeUSDTAsync !== 'function') {
-        throw new Error('writeContractAsync 不可用，请检查钱包连接状态。请确保钱包已连接并解锁。');
+        throw new Error(t('errors.walletNotConnected'));
       }
 
       // 验证所有参数
       if (!usdtAddress || !paymentReceiver || !PRICE) {
-        throw new Error('支付参数不完整，请检查配置');
+        throw new Error(t('errors.paymentReceiverNotConfigured'));
       }
 
       // 使用 writeContractAsync 来触发钱包签名
@@ -255,7 +257,7 @@ export function DAppCreatePage() {
       
       // 确保在调用前钱包已就绪
       if (isUSDTWriting) {
-        console.warn('[Frontend] 已有交易正在处理中，请等待...');
+        console.warn('[Frontend] ' + t('errors.transactionInProgress'));
         return;
       }
 
@@ -304,11 +306,11 @@ export function DAppCreatePage() {
         error?.code === 4001 ||
         error?.code === 'ACTION_REJECTED'
       ) {
-        alert('用户取消了操作');
+        alert(t('common.userCancelled'));
       } else if (error?.message) {
-        alert(`支付失败: ${error.message}`);
+        alert(`${t('common.paymentFailed')}: ${error.message}`);
       } else {
-        alert(`支付失败，请重试。错误信息: ${JSON.stringify(error)}`);
+        alert(`${t('common.paymentFailed')}。${JSON.stringify(error)}`);
       }
     }
   };
@@ -390,10 +392,10 @@ export function DAppCreatePage() {
           <div className="text-center space-y-2 mb-8">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <Globe className="h-8 w-8 text-green-400" />
-              <h1 className="text-4xl font-bold text-white">DApp 入驻</h1>
+              <h1 className="text-4xl font-bold text-white">{t('dapp.createTitle')}</h1>
             </div>
             <p className="text-gray-400">
-              提交您的 DApp 到平台，让更多用户发现和使用
+              {t('dapp.createDesc')}
             </p>
           </div>
 
@@ -402,26 +404,26 @@ export function DAppCreatePage() {
             <div className="md:col-span-2 space-y-6">
               <Card className="bg-gray-900 border-gray-800">
                 <CardHeader className="border-b border-gray-800">
-                  <CardTitle className="text-white">DApp 信息</CardTitle>
+                  <CardTitle className="text-white">{t('dapp.dappInfo')}</CardTitle>
                   <CardDescription className="text-gray-400">
-                    填写您的 DApp 基本信息
+                    {t('dapp.dappInfoDesc')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 pt-6">
                   {!isConnected && (
                     <div className="flex items-center space-x-2 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                       <AlertCircle className="h-5 w-5 text-yellow-400" />
-                      <span className="text-sm text-yellow-400">请先连接钱包</span>
+                      <span className="text-sm text-yellow-400">{t('common.connectWallet')}</span>
                     </div>
                   )}
 
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-gray-300">
-                      DApp 名称 <span className="text-red-400">*</span>
+                      {t('dapp.dappName')} <span className="text-red-400">*</span>
                     </Label>
                     <Input
                       id="name"
-                      placeholder="例如: My DApp"
+                      placeholder={t('dapp.dappNamePlaceholder')}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-green-500"
@@ -430,11 +432,11 @@ export function DAppCreatePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="description" className="text-gray-300">
-                      描述
+                      {t('dapp.dappDescription')}
                     </Label>
                     <textarea
                       id="description"
-                      placeholder="简要描述您的 DApp 功能和特点..."
+                      placeholder={t('dapp.dappDescriptionPlaceholder')}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={4}
@@ -444,12 +446,12 @@ export function DAppCreatePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="url" className="text-gray-300">
-                      URL <span className="text-red-400">*</span>
+                      {t('dapp.dappUrl')} <span className="text-red-400">*</span>
                     </Label>
                     <Input
                       id="url"
                       type="url"
-                      placeholder="https://example.com"
+                      placeholder={t('dapp.dappUrlPlaceholder')}
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
                       className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-green-500"
@@ -458,11 +460,11 @@ export function DAppCreatePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="category" className="text-gray-300">
-                      分类 <span className="text-red-400">*</span>
+                      {t('dapp.dappCategory')} <span className="text-red-400">*</span>
                     </Label>
                     <Input
                       id="category"
-                      placeholder="DeFi, NFT, GameFi, Social 等"
+                      placeholder={t('dapp.dappCategoryPlaceholder')}
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
                       className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-green-500"
@@ -471,7 +473,7 @@ export function DAppCreatePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="logo" className="text-gray-300">
-                      DApp 图标
+                      {t('dapp.dappLogo')}
                     </Label>
                     {logoPreview ? (
                       <div className="relative">
@@ -490,17 +492,17 @@ export function DAppCreatePage() {
                         {isUploading && (
                           <div className="mt-2 flex items-center space-x-2 text-sm text-yellow-400">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span>上传中...</span>
+                            <span>{t('common.uploading')}</span>
                           </div>
                         )}
                         {!isUploading && logoR2Key && (
-                          <p className="text-xs text-green-400 mt-2">✓ 图标已上传</p>
+                          <p className="text-xs text-green-400 mt-2">{t('common.uploaded')}</p>
                         )}
                         {!isUploading && !logoR2Key && isConnected && (
-                          <p className="text-xs text-gray-400 mt-2">等待上传...</p>
+                          <p className="text-xs text-gray-400 mt-2">{t('common.waitingUpload')}</p>
                         )}
                         {!isUploading && !logoR2Key && !isConnected && (
-                          <p className="text-xs text-yellow-400 mt-2">请连接钱包后自动上传</p>
+                          <p className="text-xs text-yellow-400 mt-2">{t('common.connectWalletToUpload')}</p>
                         )}
                       </div>
                     ) : (
@@ -518,7 +520,7 @@ export function DAppCreatePage() {
                         >
                           <Upload className="h-8 w-8 text-gray-400" />
                           <span className="text-sm text-gray-400">
-                            点击选择图标（最大 5MB）
+                            {t('common.selectImage')}
                           </span>
                         </label>
                       </div>
@@ -532,7 +534,7 @@ export function DAppCreatePage() {
                 <CardHeader className="border-b border-gray-800">
                   <CardTitle className="text-white flex items-center space-x-2">
                     <Wallet className="h-5 w-5 text-green-400" />
-                    <span>支付并提交</span>
+                    <span>{t('dapp.payAndSubmit')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-6">
@@ -541,7 +543,7 @@ export function DAppCreatePage() {
                     <div className="flex items-center space-x-2 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                       <Loader2 className="h-5 w-5 text-yellow-400 animate-spin" />
                       <div className="flex-1">
-                        <p className="text-sm text-yellow-400 font-medium">交易已发送，等待确认...</p>
+                        <p className="text-sm text-yellow-400 font-medium">{t('common.transactionSent')}</p>
                         <p className="text-xs text-gray-400 font-mono mt-1 break-all">
                           {usdtHash}
                         </p>
@@ -553,7 +555,7 @@ export function DAppCreatePage() {
                     <div className="flex items-center space-x-2 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                       <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
                       <div className="flex-1">
-                        <p className="text-sm text-blue-400 font-medium">支付已确认，正在提交 DApp...</p>
+                        <p className="text-sm text-blue-400 font-medium">{t('dapp.submittingDapp')}</p>
                         <p className="text-xs text-gray-400 font-mono mt-1 break-all">
                           {receipt.transactionHash}
                         </p>
@@ -565,7 +567,7 @@ export function DAppCreatePage() {
                     <div className="flex items-center space-x-2 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
                       <CheckCircle className="h-5 w-5 text-green-400" />
                       <div className="flex-1">
-                        <p className="text-sm text-green-400 font-medium">支付成功！</p>
+                        <p className="text-sm text-green-400 font-medium">{t('common.paymentSuccess')}</p>
                         <p className="text-xs text-gray-400 font-mono mt-1 break-all">
                           {paymentTxHash}
                         </p>
@@ -579,8 +581,8 @@ export function DAppCreatePage() {
                       <div className="flex-1">
                         <p className="text-sm text-red-400 font-medium">
                           {writeError.message?.includes('User rejected') || writeError.message?.includes('user rejected') || writeError.message?.includes('rejected')
-                            ? '用户取消了交易'
-                            : `支付失败: ${writeError.message || '未知错误'}`}
+                            ? t('common.userCancelled')
+                            : `${t('common.paymentFailed')}: ${writeError.message || ''}`}
                         </p>
                       </div>
                     </div>
@@ -603,23 +605,23 @@ export function DAppCreatePage() {
                     {isUSDTWriting || isUSDTConfirming ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        {isUSDTWriting ? '发送交易...' : '等待确认...'}
+                        {isUSDTWriting ? t('common.sendingTransaction') : t('common.waitingConfirmation')}
                       </>
                     ) : paymentTxHash ? (
                       <>
                         <CheckCircle className="mr-2 h-5 w-5" />
-                        已提交
+                        {t('common.submitted')}
                       </>
                     ) : (
                       <>
                         <Wallet className="mr-2 h-5 w-5" />
-                        支付 {formatAmount(PRICE, TOKEN_DECIMALS)} 代币并提交
+                        {t('dapp.payAndSubmitBtn', { amount: formatAmount(PRICE, TOKEN_DECIMALS) })}
                       </>
                     )}
                   </Button>
 
                   <p className="text-xs text-gray-500 text-center">
-                    点击按钮将同时完成支付和提交，支付成功后会自动提交 DApp
+                    {t('dapp.submitHint')}
                   </p>
                 </CardContent>
               </Card>
@@ -631,19 +633,19 @@ export function DAppCreatePage() {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center space-x-2">
                     <Info className="h-5 w-5 text-green-400" />
-                    <span>费用说明</span>
+                    <span>{t('dapp.feeInfo')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-400 mb-2">入驻费用</p>
+                    <p className="text-sm text-gray-400 mb-2">{t('dapp.listingFee')}</p>
                     <p className="text-3xl font-bold text-green-400">
-                      {formatAmount(PRICE, TOKEN_DECIMALS)} 代币
+                      {formatAmount(PRICE, TOKEN_DECIMALS)} {t('home.oneToken').split(' ')[1]}
                     </p>
                   </div>
                   <div className="pt-4 border-t border-gray-700">
                     <p className="text-xs text-gray-400 leading-relaxed">
-                      提交后需要管理员审核，审核通过后您的 DApp 将显示在平台上。
+                      {t('dapp.feeDesc')}
                     </p>
                   </div>
                 </CardContent>
@@ -651,20 +653,20 @@ export function DAppCreatePage() {
 
               <Card className="bg-gray-900 border-gray-800">
                 <CardHeader>
-                  <CardTitle className="text-white text-lg">注意事项</CardTitle>
+                  <CardTitle className="text-white text-lg">{t('dapp.notes')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-400">
                   <div className="flex items-start space-x-2">
                     <span className="text-green-400">•</span>
-                    <span>请确保 URL 可正常访问</span>
+                    <span>{t('dapp.note1')}</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-green-400">•</span>
-                    <span>分类选择要准确，便于用户查找</span>
+                    <span>{t('dapp.note2')}</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-green-400">•</span>
-                    <span>提交后可在 DApp 列表查看审核状态</span>
+                    <span>{t('dapp.note3')}</span>
                   </div>
                 </CardContent>
               </Card>

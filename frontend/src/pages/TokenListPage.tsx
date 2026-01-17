@@ -6,8 +6,10 @@ import { apiClient } from '@/lib/api';
 import { formatAddress, formatDate } from '@/lib/utils';
 import { Plus, ExternalLink, Pin, Coins, Wallet } from 'lucide-react';
 import { GeometricPattern } from '@/components/GeometricPattern';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export function TokenListPage() {
+  const { t } = useLanguage();
   const { data: listedTokens, isLoading: isLoadingListed } = useQuery({
     queryKey: ['listed-tokens'],
     queryFn: async () => {
@@ -31,7 +33,7 @@ export function TokenListPage() {
         <div className="container mx-auto px-4 py-8 relative z-10">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
-            <p className="mt-4 text-gray-400">加载中...</p>
+            <p className="mt-4 text-gray-400">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -48,14 +50,14 @@ export function TokenListPage() {
             <div>
               <div className="flex items-center space-x-2 mb-2">
                 <Coins className="h-8 w-8 text-green-400" />
-                <h1 className="text-4xl font-bold text-white">代币列表</h1>
+                <h1 className="text-4xl font-bold text-white">{t('token.listTitle')}</h1>
               </div>
-              <p className="text-gray-400">查看所有已部署和收录的代币</p>
+              <p className="text-gray-400">{t('token.listDesc')}</p>
             </div>
             <Link to="/tokens/list">
               <Button className="bg-green-500 hover:bg-green-600 text-white glow-green">
                 <Plus className="mr-2 h-4 w-4" />
-                收录代币
+                {t('token.listToken')}
               </Button>
             </Link>
           </div>
@@ -64,7 +66,7 @@ export function TokenListPage() {
           <div>
             <div className="flex items-center space-x-2 mb-6">
               <Wallet className="h-6 w-6 text-green-400" />
-              <h2 className="text-2xl font-bold text-white">已收录代币</h2>
+              <h2 className="text-2xl font-bold text-white">{t('token.listedTokens')}</h2>
             </div>
             {listedTokens && Array.isArray(listedTokens) && listedTokens.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -83,7 +85,7 @@ export function TokenListPage() {
                         )}
                       </div>
                       <CardDescription className="text-gray-400">
-                        链 ID: {token.chain_id} | {formatDate(token.created_at)}
+                        {t('token.chainId')}: {token.chain_id} | {formatDate(token.created_at)}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -93,7 +95,7 @@ export function TokenListPage() {
                         rel="noopener noreferrer"
                         className="text-sm text-green-400 hover:text-green-300 flex items-center transition-colors"
                       >
-                        查看链上信息
+                        {t('common.viewOnChain')}
                         <ExternalLink className="ml-1 h-3 w-3" />
                       </a>
                     </CardContent>
@@ -103,7 +105,7 @@ export function TokenListPage() {
             ) : (
               <Card className="bg-gray-900 border-gray-800">
                 <CardContent className="py-12 text-center text-gray-400">
-                  暂无收录的代币
+                  {t('token.noListedTokens')}
                 </CardContent>
               </Card>
             )}
@@ -113,7 +115,7 @@ export function TokenListPage() {
           <div>
             <div className="flex items-center space-x-2 mb-6">
               <Coins className="h-6 w-6 text-green-400" />
-              <h2 className="text-2xl font-bold text-white">已部署代币</h2>
+              <h2 className="text-2xl font-bold text-white">{t('token.deployedTokens')}</h2>
             </div>
             {deployedTokens && Array.isArray(deployedTokens) && deployedTokens.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -125,18 +127,18 @@ export function TokenListPage() {
                     <CardHeader>
                       <CardTitle className="text-lg text-white">{token.name}</CardTitle>
                       <CardDescription className="text-gray-400">
-                        {token.symbol} | 链 ID: {token.chain_id}
+                        {token.symbol} | {t('token.chainId')}: {token.chain_id}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">合约地址</p>
+                        <p className="text-xs text-gray-500 mb-1">{t('token.contractAddress')}</p>
                         <p className="text-sm font-mono text-gray-300">
                           {formatAddress(token.token_address)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">部署时间</p>
+                        <p className="text-xs text-gray-500 mb-1">{t('token.deployTime')}</p>
                         <p className="text-sm text-gray-300">{formatDate(token.deployed_at)}</p>
                       </div>
                       <a
@@ -145,7 +147,7 @@ export function TokenListPage() {
                         rel="noopener noreferrer"
                         className="text-sm text-green-400 hover:text-green-300 flex items-center transition-colors"
                       >
-                        查看链上信息
+                        {t('common.viewOnChain')}
                         <ExternalLink className="ml-1 h-3 w-3" />
                       </a>
                     </CardContent>
@@ -155,7 +157,7 @@ export function TokenListPage() {
             ) : (
               <Card className="bg-gray-900 border-gray-800">
                 <CardContent className="py-12 text-center text-gray-400">
-                  暂无部署的代币
+                  {t('token.noDeployedTokens')}
                 </CardContent>
               </Card>
             )}

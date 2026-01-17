@@ -3,18 +3,21 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Wallet, Coins, Globe, Home, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useLanguage } from '@/hooks/useLanguage';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export function Layout() {
   const location = useLocation();
   const { isAdmin } = useAdmin();
+  const { t } = useLanguage();
 
   const navItems = [
-    { path: '/', label: '首页概览', icon: Home },
-    { path: '/deploy-token', label: '一键发币', icon: Coins },
-    { path: '/dapps', label: 'DApp 入驻', icon: Globe },
-    { path: '/tokens', label: '代币收录', icon: Wallet },
+    { path: '/', label: t('nav.home'), icon: Home },
+    { path: '/deploy-token', label: t('nav.deployToken'), icon: Coins },
+    { path: '/dapps', label: t('nav.dappEntry'), icon: Globe },
+    { path: '/tokens', label: t('nav.tokenList'), icon: Wallet },
     // 如果是管理员，显示管理后台入口
-    ...(isAdmin ? [{ path: '/admin', label: '管理后台', icon: Settings }] : []),
+    ...(isAdmin ? [{ path: '/admin', label: t('nav.admin'), icon: Settings }] : []),
   ];
 
   return (
@@ -58,9 +61,8 @@ export function Layout() {
             
             {/* 右侧操作 */}
             <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center space-x-2 text-gray-400 text-sm cursor-pointer hover:text-green-400 transition-colors">
-                <Globe className="h-4 w-4" />
-                <span>简</span>
+              <div className="hidden md:block">
+                <LanguageSwitcher />
               </div>
               <div className="[&>button]:bg-green-500 [&>button]:hover:bg-green-600 [&>button]:text-white [&>button]:px-4 [&>button]:py-2 [&>button]:rounded-lg [&>button]:font-medium [&>button]:transition-all [&>button]:glow-green">
                 <ConnectButton />

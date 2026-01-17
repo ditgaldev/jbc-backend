@@ -6,8 +6,10 @@ import { apiClient } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import { Plus, ExternalLink, Star, Globe } from 'lucide-react';
 import { GeometricPattern } from '@/components/GeometricPattern';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export function DAppListPage() {
+  const { t } = useLanguage();
   const { data, isLoading, error } = useQuery({
     queryKey: ['dapps'],
     queryFn: async () => {
@@ -23,7 +25,7 @@ export function DAppListPage() {
         <div className="container mx-auto px-4 py-8 relative z-10">
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
-            <p className="mt-4 text-gray-400">加载中...</p>
+            <p className="mt-4 text-gray-400">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -35,7 +37,7 @@ export function DAppListPage() {
       <div className="relative min-h-screen">
         <GeometricPattern />
         <div className="container mx-auto px-4 py-8 relative z-10">
-          <div className="text-center py-12 text-red-400">加载失败</div>
+          <div className="text-center py-12 text-red-400">{t('common.paymentFailed')}</div>
         </div>
       </div>
     );
@@ -51,14 +53,14 @@ export function DAppListPage() {
             <div>
               <div className="flex items-center space-x-2 mb-2">
                 <Globe className="h-8 w-8 text-green-400" />
-                <h1 className="text-4xl font-bold text-white">DApp 列表</h1>
+                <h1 className="text-4xl font-bold text-white">{t('dapp.listTitle')}</h1>
               </div>
-              <p className="text-gray-400">发现和探索优秀的去中心化应用</p>
+              <p className="text-gray-400">{t('dapp.listDesc')}</p>
             </div>
             <Link to="/dapps/create">
               <Button className="bg-green-500 hover:bg-green-600 text-white glow-green">
                 <Plus className="mr-2 h-4 w-4" />
-                提交 DApp
+                {t('dapp.submitDapp')}
               </Button>
             </Link>
           </div>
@@ -97,7 +99,7 @@ export function DAppListPage() {
                         rel="noopener noreferrer"
                         className="text-sm text-green-400 hover:text-green-300 flex items-center transition-colors"
                       >
-                        访问
+                        {t('common.visit')}
                         <ExternalLink className="ml-1 h-3 w-3" />
                       </a>
                     </div>
@@ -109,10 +111,10 @@ export function DAppListPage() {
             <Card className="bg-gray-900 border-gray-800">
               <CardContent className="py-16 text-center">
                 <Globe className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 mb-4">暂无 DApp</p>
+                <p className="text-gray-400 mb-4">{t('dapp.noDapps')}</p>
                 <Link to="/dapps/create">
                   <Button className="bg-green-500 hover:bg-green-600 text-white">
-                    成为第一个提交者
+                    {t('common.beFirstSubmitter')}
                   </Button>
                 </Link>
               </CardContent>

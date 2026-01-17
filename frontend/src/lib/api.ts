@@ -342,6 +342,19 @@ class ApiClient {
     return this.authenticatedRequest(`/admin/apk/files/${id}`, { method: 'DELETE' });
   }
 
+  // 获取最新 APK 信息（公开接口）
+  async getLatestApk() {
+    return this.request<{
+      url: string | null;
+      name: string | null;
+      version: string | null;
+      file_name?: string;
+      file_size?: number;
+      description?: string | null;
+      uploaded_at: number | null;
+    }>('/apk/latest', { method: 'GET' });
+  }
+
   // 代币相关 API
   async getDeployedTokens(filters?: { chainId?: number; deployerAddress?: string }) {
     const params = new URLSearchParams();
@@ -412,6 +425,13 @@ class ApiClient {
     return this.authenticatedRequest(`/admin/dapps/${dappId}/sort-order`, {
       method: 'PUT',
       body: JSON.stringify({ sortOrder }),
+    });
+  }
+
+  async updateDAppFeatured(dappId: number, featured: boolean) {
+    return this.authenticatedRequest(`/admin/dapps/${dappId}/featured`, {
+      method: 'PUT',
+      body: JSON.stringify({ featured }),
     });
   }
 

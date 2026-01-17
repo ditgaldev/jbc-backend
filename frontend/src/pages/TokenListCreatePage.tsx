@@ -13,6 +13,7 @@ import { useSignMessage } from 'wagmi';
 import { Loader2, AlertCircle, Wallet, Info, Coins, CheckCircle, Upload, X } from 'lucide-react';
 import { GeometricPattern } from '@/components/GeometricPattern';
 import { CHAIN_IDS } from '@/config/chains';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const PRICING = {
   TOKEN_LISTING: '1', // 测试价格：1 代币
@@ -23,6 +24,7 @@ const TOKEN_DECIMALS = 6;
 const PRICE = BigInt(PRICING.TOKEN_LISTING) * BigInt(10 ** TOKEN_DECIMALS);
 
 export function TokenListCreatePage() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { address, isConnected, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -52,11 +54,11 @@ export function TokenListCreatePage() {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
-        alert('请选择图片文件');
+        alert(t('common.selectImageFile'));
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        alert('文件大小不能超过 5MB');
+        alert(t('common.fileTooLarge'));
         return;
       }
       
@@ -79,14 +81,14 @@ export function TokenListCreatePage() {
             console.log('[Frontend] Logo uploaded successfully:', response.data.key);
           } else {
             console.error('[Frontend] Upload failed:', response.error);
-            alert(response.error || '上传失败，请重试');
+            alert(response.error || t('common.uploadFailed'));
             // 上传失败时清除文件
             setLogoFile(null);
             setLogoPreview(null);
           }
         } catch (error: any) {
           console.error('[Frontend] Upload error:', error);
-          alert('上传失败，请重试');
+          alert(t('common.uploadFailed'));
           // 上传失败时清除文件
           setLogoFile(null);
           setLogoPreview(null);
@@ -140,7 +142,7 @@ export function TokenListCreatePage() {
         await switchChain({ chainId: newChainId });
       } catch (error) {
         console.error('Failed to switch chain:', error);
-        alert('请手动切换到目标链');
+        alert(t('errors.manualSwitchChain'));
       }
     }
   };
@@ -156,18 +158,18 @@ export function TokenListCreatePage() {
   const handlePaymentAndSubmit = async () => {
     // 验证表单
     if (!tokenAddress) {
-      alert('请填写代币合约地址');
+      alert(t('token.fillTokenAddress'));
       return;
     }
 
     if (!isConnected || !address) {
-      alert('请先连接钱包');
+      alert(t('common.connectWallet'));
       return;
     }
 
     // 检查链是否匹配
     if (chainId !== selectedChainId) {
-      alert(`请切换到 ${selectedChainId === CHAIN_IDS.SEPOLIA ? '以太坊 Sepolia' : '目标'} 网络`);
+      alert(t('deployToken.switchNetwork', { network: selectedChainId === CHAIN_IDS.SEPOLIA ? t('deployToken.ethereumSepolia') : '' }));
       return;
     }
 
@@ -191,7 +193,7 @@ export function TokenListCreatePage() {
       const loginResponse = await apiClient.login(message, signature);
       
       if (!loginResponse.success || !loginResponse.data?.token) {
-        throw new Error(loginResponse.error || '登录失败，无法获取 JWT token');
+        throw new Error(loginResponse.error || t('errors.loginFailed'));
       }
       
       console.log('[Frontend] Login successful, JWT token obtained and saved');
@@ -207,19 +209,19 @@ export function TokenListCreatePage() {
 
       const usdtAddress = CONTRACTS.USDT[selectedChainId as keyof typeof CONTRACTS.USDT];
       if (!usdtAddress || usdtAddress === '') {
-        alert('当前链不支持该代币，请切换到 Sepolia 测试网');
+        alert(t('errors.chainNotSupported'));
         return;
       }
 
       const paymentReceiver = CONTRACTS.PAYMENT_RECEIVER;
       if (!paymentReceiver || paymentReceiver === '') {
-        alert('支付接收地址未配置，请联系管理员');
+        alert(t('errors.paymentReceiverNotConfigured'));
         return;
       }
 
       // 检查当前连接的链是否匹配
       if (chainId !== selectedChainId) {
-        alert(`请切换到链 ID ${selectedChainId} 的网络`);
+        alert(t('errors.switchToChain', { chainId: selectedChainId }));
         return;
       }
 
@@ -250,11 +252,11 @@ export function TokenListCreatePage() {
       // 如果用户取消了签名或支付，清除保存的数据
       sessionStorage.removeItem('pendingTokenSubmission');
       if (error?.message?.includes('User rejected') || error?.message?.includes('user rejected') || error?.message?.includes('rejected')) {
-        alert('用户取消了操作');
+        alert(t('common.userCancelled'));
       } else if (error?.message) {
-        alert(`支付失败: ${error.message}`);
+        alert(`${t('common.paymentFailed')}: ${error.message}`);
       } else {
-        alert('支付失败，请重试');
+        alert(t('common.paymentFailed'));
       }
     }
   };
@@ -333,10 +335,10 @@ export function TokenListCreatePage() {
           <div className="text-center space-y-2 mb-8">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <Coins className="h-8 w-8 text-green-400" />
-              <h1 className="text-4xl font-bold text-white">代币收录</h1>
+              <h1 className="text-4xl font-bold text-white">{t('token.createTitle')}</h1>
             </div>
             <p className="text-gray-400">
-              将您的代币收录到平台，提升曝光度和知名度
+              {t('token.createDesc')}
             </p>
           </div>
 
@@ -345,22 +347,22 @@ export function TokenListCreatePage() {
             <div className="md:col-span-2 space-y-6">
               <Card className="bg-gray-900 border-gray-800">
                 <CardHeader className="border-b border-gray-800">
-                  <CardTitle className="text-white">代币信息</CardTitle>
+                  <CardTitle className="text-white">{t('token.tokenInfo')}</CardTitle>
                   <CardDescription className="text-gray-400">
-                    填写代币合约地址
+                    {t('token.tokenInfoDesc')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 pt-6">
                   {!isConnected && (
                     <div className="flex items-center space-x-2 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                       <AlertCircle className="h-5 w-5 text-yellow-400" />
-                      <span className="text-sm text-yellow-400">请先连接钱包</span>
+                      <span className="text-sm text-yellow-400">{t('common.connectWallet')}</span>
                     </div>
                   )}
 
                   <div className="space-y-2">
                     <Label htmlFor="chain" className="text-gray-300">
-                      选择链 <span className="text-red-400">*</span>
+                      {t('deployToken.selectChain')} <span className="text-red-400">*</span>
                     </Label>
                     <select
                       id="chain"
@@ -368,14 +370,14 @@ export function TokenListCreatePage() {
                       onChange={(e) => handleChainChange(Number(e.target.value))}
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:border-green-500"
                     >
-                      <option value={CHAIN_IDS.SEPOLIA}>以太坊 Sepolia (测试网)</option>
+                      <option value={CHAIN_IDS.SEPOLIA}>{t('deployToken.ethereumSepolia')}</option>
                     </select>
-                    <p className="text-xs text-gray-500">当前仅支持以太坊 Sepolia 测试网</p>
+                    <p className="text-xs text-gray-500">{t('deployToken.chainHint')}</p>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="logo" className="text-gray-300">
-                      代币图标
+                      {t('token.tokenLogo')}
                     </Label>
                     {logoPreview ? (
                       <div className="relative">
@@ -394,17 +396,17 @@ export function TokenListCreatePage() {
                         {isUploading && (
                           <div className="mt-2 flex items-center space-x-2 text-sm text-yellow-400">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span>上传中...</span>
+                            <span>{t('common.uploading')}</span>
                           </div>
                         )}
                         {!isUploading && logoR2Key && (
-                          <p className="text-xs text-green-400 mt-2">✓ 图标已上传</p>
+                          <p className="text-xs text-green-400 mt-2">{t('common.uploaded')}</p>
                         )}
                         {!isUploading && !logoR2Key && isConnected && (
-                          <p className="text-xs text-gray-400 mt-2">等待上传...</p>
+                          <p className="text-xs text-gray-400 mt-2">{t('common.waitingUpload')}</p>
                         )}
                         {!isUploading && !logoR2Key && !isConnected && (
-                          <p className="text-xs text-yellow-400 mt-2">请连接钱包后自动上传</p>
+                          <p className="text-xs text-yellow-400 mt-2">{t('common.connectWalletToUpload')}</p>
                         )}
                       </div>
                     ) : (
@@ -422,7 +424,7 @@ export function TokenListCreatePage() {
                         >
                           <Upload className="h-8 w-8 text-gray-400" />
                           <span className="text-sm text-gray-400">
-                            点击选择图标（最大 5MB）
+                            {t('common.selectImage')}
                           </span>
                         </label>
                       </div>
@@ -431,11 +433,11 @@ export function TokenListCreatePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="tokenAddress" className="text-gray-300">
-                      代币合约地址 <span className="text-red-400">*</span>
+                      {t('token.tokenAddress')} <span className="text-red-400">*</span>
                     </Label>
                     <Input
                       id="tokenAddress"
-                      placeholder="0x..."
+                      placeholder={t('token.tokenAddressPlaceholder')}
                       value={tokenAddress}
                       onChange={(e) => setTokenAddress(e.target.value)}
                       className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-green-500 font-mono"
@@ -447,7 +449,7 @@ export function TokenListCreatePage() {
                         rel="noopener noreferrer"
                         className="text-xs text-green-400 hover:underline"
                       >
-                        查看合约
+                        {t('common.viewContract')}
                       </a>
                     )}
                   </div>
@@ -459,7 +461,7 @@ export function TokenListCreatePage() {
                 <CardHeader className="border-b border-gray-800">
                   <CardTitle className="text-white flex items-center space-x-2">
                     <Wallet className="h-5 w-5 text-green-400" />
-                    <span>支付并提交</span>
+                    <span>{t('token.payAndSubmit')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-6">
@@ -468,7 +470,7 @@ export function TokenListCreatePage() {
                     <div className="flex items-center space-x-2 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                       <Loader2 className="h-5 w-5 text-yellow-400 animate-spin" />
                       <div className="flex-1">
-                        <p className="text-sm text-yellow-400 font-medium">交易已发送，等待确认...</p>
+                        <p className="text-sm text-yellow-400 font-medium">{t('common.transactionSent')}</p>
                         <p className="text-xs text-gray-400 font-mono mt-1 break-all">
                           {usdtHash}
                         </p>
@@ -480,7 +482,7 @@ export function TokenListCreatePage() {
                     <div className="flex items-center space-x-2 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                       <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
                       <div className="flex-1">
-                        <p className="text-sm text-blue-400 font-medium">支付已确认，正在提交代币收录...</p>
+                        <p className="text-sm text-blue-400 font-medium">{t('token.submittingToken')}</p>
                         <p className="text-xs text-gray-400 font-mono mt-1 break-all">
                           {receipt.transactionHash}
                         </p>
@@ -492,12 +494,12 @@ export function TokenListCreatePage() {
                     <div className="flex items-center space-x-2 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
                       <CheckCircle className="h-5 w-5 text-green-400" />
                       <div className="flex-1">
-                        <p className="text-sm text-green-400 font-medium">支付成功！</p>
+                        <p className="text-sm text-green-400 font-medium">{t('common.paymentSuccess')}</p>
                         <p className="text-xs text-gray-400 font-mono mt-1 break-all">
-                          交易哈希: {paymentTxHash}
+                          {t('token.txHash')}: {paymentTxHash}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          支付接收地址: {CONTRACTS.PAYMENT_RECEIVER}
+                          {t('token.paymentReceiver')}: {CONTRACTS.PAYMENT_RECEIVER}
                         </p>
                       </div>
                     </div>
@@ -509,8 +511,8 @@ export function TokenListCreatePage() {
                       <div className="flex-1">
                         <p className="text-sm text-red-400 font-medium">
                           {writeError.message?.includes('User rejected') || writeError.message?.includes('user rejected') || writeError.message?.includes('rejected')
-                            ? '用户取消了交易'
-                            : `支付失败: ${writeError.message || '未知错误'}`}
+                            ? t('common.userCancelled')
+                            : `${t('common.paymentFailed')}: ${writeError.message || ''}`}
                         </p>
                       </div>
                     </div>
@@ -531,23 +533,23 @@ export function TokenListCreatePage() {
                     {isUSDTWriting || isUSDTConfirming ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        {isUSDTWriting ? '发送交易...' : '等待确认...'}
+                        {isUSDTWriting ? t('common.sendingTransaction') : t('common.waitingConfirmation')}
                       </>
                     ) : paymentTxHash ? (
                       <>
                         <CheckCircle className="mr-2 h-5 w-5" />
-                        已提交
+                        {t('common.submitted')}
                       </>
                     ) : (
                       <>
                         <Wallet className="mr-2 h-5 w-5" />
-                        支付 {formatAmount(PRICE, TOKEN_DECIMALS)} 代币并提交
+                        {t('token.payAndSubmitBtn', { amount: formatAmount(PRICE, TOKEN_DECIMALS) })}
                       </>
                     )}
                   </Button>
 
                   <p className="text-xs text-gray-500 text-center">
-                    点击按钮将同时完成支付和提交，支付成功后会自动提交代币收录
+                    {t('token.submitHint')}
                   </p>
                 </CardContent>
               </Card>
@@ -559,19 +561,19 @@ export function TokenListCreatePage() {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center space-x-2">
                     <Info className="h-5 w-5 text-green-400" />
-                    <span>费用说明</span>
+                    <span>{t('token.feeInfo')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-400 mb-2">收录费用</p>
+                    <p className="text-sm text-gray-400 mb-2">{t('token.listingFee')}</p>
                     <p className="text-3xl font-bold text-green-400">
-                      {formatAmount(PRICE, TOKEN_DECIMALS)} 代币
+                      {formatAmount(PRICE, TOKEN_DECIMALS)} {t('home.oneToken').split(' ')[1]}
                     </p>
                   </div>
                   <div className="pt-4 border-t border-gray-700">
                     <p className="text-xs text-gray-400 leading-relaxed">
-                      收录后您的代币将显示在平台代币列表中，用户可以查看和交易。
+                      {t('token.feeDesc')}
                     </p>
                   </div>
                 </CardContent>
@@ -579,20 +581,20 @@ export function TokenListCreatePage() {
 
               <Card className="bg-gray-900 border-gray-800">
                 <CardHeader>
-                  <CardTitle className="text-white text-lg">注意事项</CardTitle>
+                  <CardTitle className="text-white text-lg">{t('token.notes')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-gray-400">
                   <div className="flex items-start space-x-2">
                     <span className="text-green-400">•</span>
-                    <span>请确保合约地址正确且为 ERC20 代币</span>
+                    <span>{t('token.note1')}</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-green-400">•</span>
-                    <span>代币必须已部署在支持的链上</span>
+                    <span>{t('token.note2')}</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-green-400">•</span>
-                    <span>收录后可在代币列表查看</span>
+                    <span>{t('token.note3')}</span>
                   </div>
                 </CardContent>
               </Card>
