@@ -60,12 +60,18 @@ export function ApkUploadPage() {
       setUploadProgress(0);
       
       try {
-        // 上传文件
-        const uploadResponse = await apiClient.uploadApkFile(file, {
-          name: fileName || file.name,
-          version: version || undefined,
-          description: description || undefined,
-        });
+        // 上传文件（带进度回调）
+        const uploadResponse = await apiClient.uploadApkFile(
+          file,
+          {
+            name: fileName || file.name,
+            version: version || undefined,
+            description: description || undefined,
+          },
+          (progress) => {
+            setUploadProgress(progress);
+          }
+        );
 
         if (!uploadResponse.success) {
           throw new Error(uploadResponse.error || '上传失败');

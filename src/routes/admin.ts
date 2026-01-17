@@ -161,24 +161,23 @@ admin.post('/users/:address/role', async (c) => {
   return c.json({ success: true, message: 'User role updated' });
 });
 
-// APK 文件上传
+// APK 文件上传 - 第一步：注册文件信息，返回上传 URL
 admin.post('/apk/upload', async (c) => {
   const userAddress = (c as any).get('userAddress');
   const db = c.env.DB;
 
   try {
-    const formData = await c.req.formData();
-    const file = formData.get('file') as File;
-    const name = formData.get('name') as string;
-    const version = formData.get('version') as string | null;
-    const description = formData.get('description') as string | null;
+    const body = await c.req.json<{
+      name: string;
+      fileName: string;
+      fileSize: number;
+      version?: string;
+      description?: string;
+    }>();
 
-    if (!file) {
-      return c.json({ success: false, error: 'No file provided' }, 400);
-    }
+    const { name, fileName, fileSize, version, description } = body;
 
-    // 验证文件类型（只允许 APK）
-    if (!file.name.endsWith('.apk')) {
+    if (!fileName || !fileName.endsWith('.apk')) {
       return c.json({ success: false, error: 'Invalid file type. Only APK files are allowed.' }, 400);
     }
 
@@ -186,22 +185,24 @@ admin.post('/apk/upload', async (c) => {
       return c.json({ success: false, error: 'File name is required' }, 400);
     }
 
+    if (!fileSize || fileSize <= 0) {
+      return c.json({ success: false, error: 'Invalid file size' }, 400);
+    }
+
+    // 文件大小限制：500MB
+    const maxSize = 500 * 1024 * 1024;
+    if (fileSize > maxSize) {
+      return c.json({ success: false, error: 'File too large. Maximum size is 500MB.' }, 400);
+    }
+
     // 生成唯一文件名（使用时间戳和随机字符串）
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 15);
-    const fileName = `apk/${timestamp}-${randomStr}.apk`;
-
-    // 上传到 R2
-    const r2 = c.env.R2;
-    await r2.put(fileName, file.stream(), {
-      httpMetadata: {
-        contentType: 'application/vnd.android.package-archive',
-      },
-    });
+    const r2Key = `apk/${timestamp}-${randomStr}.apk`;
 
     // 保存到数据库
     const now = Date.now();
-    const downloadUrl = `/api/upload/${fileName}`;
+    const downloadUrl = `/api/upload/${r2Key}`;
     
     const result = await db.prepare(
       `INSERT INTO apk_files (
@@ -210,24 +211,36 @@ admin.post('/apk/upload', async (c) => {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       name.trim(),
-      file.name,
-      file.size,
+      fileName,
+      fileSize,
       version?.trim() || null,
       description?.trim() || null,
-      fileName,
+      r2Key,
       downloadUrl,
       userAddress.toLowerCase(),
       now,
       now
     ).run();
 
+    const fileId = result.meta.last_row_id;
+
+    // 创建 R2 multipart upload
+    const r2 = c.env.R2;
+    const multipartUpload = await r2.createMultipartUpload(r2Key, {
+      httpMetadata: {
+        contentType: 'application/vnd.android.package-archive',
+      },
+    });
+
     return c.json({
       success: true,
       data: {
-        id: result.meta.last_row_id,
+        id: fileId,
+        r2Key,
+        uploadId: multipartUpload.uploadId,
         name: name.trim(),
-        fileName: file.name,
-        fileSize: file.size,
+        fileName,
+        fileSize,
         version: version?.trim() || null,
         description: description?.trim() || null,
         downloadUrl,
@@ -236,8 +249,106 @@ admin.post('/apk/upload', async (c) => {
       },
     });
   } catch (error) {
-    console.error('APK upload error:', error);
-    return c.json({ success: false, error: 'Upload failed' }, 500);
+    console.error('APK upload init error:', error);
+    return c.json({ success: false, error: 'Upload initialization failed' }, 500);
+  }
+});
+
+// APK 文件上传 - 第二步：上传分块
+admin.post('/apk/upload/:id/part', async (c) => {
+  const db = c.env.DB;
+  const id = parseInt(c.req.param('id'));
+
+  if (isNaN(id)) {
+    return c.json({ success: false, error: 'Invalid APK file ID' }, 400);
+  }
+
+  try {
+    const uploadId = c.req.query('uploadId');
+    const partNumber = parseInt(c.req.query('partNumber') || '1');
+
+    if (!uploadId) {
+      return c.json({ success: false, error: 'Upload ID is required' }, 400);
+    }
+
+    // 获取文件记录
+    const fileRecord = await db.prepare(
+      'SELECT r2_key FROM apk_files WHERE id = ?'
+    ).bind(id).first<{ r2_key: string }>();
+
+    if (!fileRecord) {
+      return c.json({ success: false, error: 'APK file record not found' }, 404);
+    }
+
+    // 获取上传的分块数据
+    const body = await c.req.arrayBuffer();
+
+    // 上传分块到 R2
+    const r2 = c.env.R2;
+    const multipartUpload = r2.resumeMultipartUpload(fileRecord.r2_key, uploadId);
+    const uploadedPart = await multipartUpload.uploadPart(partNumber, body);
+
+    return c.json({
+      success: true,
+      data: {
+        partNumber,
+        etag: uploadedPart.etag,
+      },
+    });
+  } catch (error) {
+    console.error('APK part upload error:', error);
+    return c.json({ success: false, error: 'Part upload failed' }, 500);
+  }
+});
+
+// APK 文件上传 - 第三步：完成上传
+admin.post('/apk/upload/:id/complete', async (c) => {
+  const db = c.env.DB;
+  const id = parseInt(c.req.param('id'));
+
+  if (isNaN(id)) {
+    return c.json({ success: false, error: 'Invalid APK file ID' }, 400);
+  }
+
+  try {
+    const body = await c.req.json<{
+      uploadId: string;
+      parts: Array<{ partNumber: number; etag: string }>;
+    }>();
+
+    const { uploadId, parts } = body;
+
+    if (!uploadId || !parts || parts.length === 0) {
+      return c.json({ success: false, error: 'Upload ID and parts are required' }, 400);
+    }
+
+    // 获取文件记录
+    const fileRecord = await db.prepare(
+      'SELECT r2_key FROM apk_files WHERE id = ?'
+    ).bind(id).first<{ r2_key: string }>();
+
+    if (!fileRecord) {
+      return c.json({ success: false, error: 'APK file record not found' }, 404);
+    }
+
+    // 完成 multipart upload
+    const r2 = c.env.R2;
+    const multipartUpload = r2.resumeMultipartUpload(fileRecord.r2_key, uploadId);
+    
+    const uploadedParts = parts.map(p => ({
+      partNumber: p.partNumber,
+      etag: p.etag,
+    }));
+
+    await multipartUpload.complete(uploadedParts);
+
+    return c.json({
+      success: true,
+      message: 'Upload completed successfully',
+    });
+  } catch (error) {
+    console.error('APK upload complete error:', error);
+    return c.json({ success: false, error: 'Upload completion failed' }, 500);
   }
 });
 
