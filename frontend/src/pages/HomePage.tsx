@@ -31,12 +31,21 @@ export function HomePage() {
     queryKey: ['latest-apk'],
     queryFn: async () => {
       const response = await apiClient.getLatestApk();
+      console.log('[HomePage] Full APK response:', response);
+      console.log('[HomePage] response.data:', response.data);
+      console.log('[HomePage] uploadedAt:', response.data?.uploadedAt);
+      console.log('[HomePage] fileSize:', response.data?.fileSize);
       if (response.data && response.data.url) {
         return response.data;
       }
       return null;
     },
   });
+
+  // 调试日志
+  console.log('[HomePage] latestApk state:', latestApk);
+  console.log('[HomePage] latestApk?.uploadedAt:', latestApk?.uploadedAt);
+  console.log('[HomePage] latestApk?.fileSize:', latestApk?.fileSize);
 
   const androidDownloadUrl = latestApk?.url || '';
 
