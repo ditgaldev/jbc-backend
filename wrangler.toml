@@ -14,7 +14,7 @@ name = "jbc-backend-dev"
 binding = "DB"
 migrations_dir = "src/db/migrations"
 database_name = "jbc-db"
-database_id = "a21346ac-24a9-4842-b270-ce69d3ea9cfc"
+database_id = "f6ecfd34-22a1-40b9-8c36-4367c7ef5b87"
 
 # R2 Storage binding
 [[r2_buckets]]
