@@ -29,7 +29,7 @@ export const CONTRACTS = {
 } as const;
 
 // API 基础 URL - 从环境变量读取，默认使用生产环境地址
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://jbc-backend.dappweb.workers.dev/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://matoken.suiyiwan1.workers.dev/api';
 
 // 定价常量（测试价格，已降低）
 export const PRICING = {
