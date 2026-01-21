@@ -6,6 +6,7 @@ import { cors } from 'hono/cors';
  */
 export const corsMiddleware = cors({
   origin: [
+    'https://matoken.ai',
     'https://matokenfrontend.pages.dev',
     'https://matoken.suiyiwan1.workers.dev',
     'http://localhost:5173',
