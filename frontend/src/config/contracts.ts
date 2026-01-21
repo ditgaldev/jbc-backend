@@ -31,11 +31,20 @@ export const CONTRACTS = {
 // API 基础 URL - 从环境变量读取，默认使用生产环境地址
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://matoken.suiyiwan1.workers.dev/api';
 
-// 定价常量（测试价格，已降低）
+// 定价常量（USDT 定价 - Sepolia 测试网使用测试价格）
 export const PRICING = {
-  TOKEN_DEPLOY: '1', // 1 代币（测试）
-  DAPP_LISTING: '1', // 1 代币（测试）
-  DAPP_FEATURED: '2', // 2 代币（测试）
-  TOKEN_LISTING: '1', // 1 代币（测试）
-  TOKEN_PINNED: '2', // 2 代币（测试）
+  TOKEN_DEPLOY: '1',     // 一键发币: 1 USDT (测试)
+  DAPP_LISTING: '1',     // DApp 入驻: 1 USDT (测试)
+  DAPP_FEATURED: '2',    // DApp 推荐位: 2 USDT (测试)
+  TOKEN_LISTING: '1',    // 代币收录: 1 USDT (测试)
+  TOKEN_PINNED: '2',     // 代币置顶: 2 USDT (测试)
 } as const;
+
+// 生产环境定价参考（上线时替换）
+// export const PRICING = {
+//   TOKEN_DEPLOY: '50',    // 一键发币: 50 USDT
+//   DAPP_LISTING: '100',   // DApp 入驻: 100 USDT
+//   DAPP_FEATURED: '200',  // DApp 推荐位: 200 USDT
+//   TOKEN_LISTING: '30',   // 代币收录: 30 USDT
+//   TOKEN_PINNED: '50',    // 代币置顶: 50 USDT
+// } as const;

@@ -8,15 +8,19 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import { formatFileSize, formatDate } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
+import { PRICING } from '@/config/contracts';
 
 const chains = [
   { name: 'MACoinChain', color: 'bg-gradient-to-r from-green-500 to-emerald-400' },
   { name: 'Ethereum', color: 'bg-blue-500' },
-  { name: 'BSC', color: 'bg-yellow-500' },
-  { name: 'Polygon', color: 'bg-purple-500' },
-  { name: 'Solana', color: 'bg-gradient-to-r from-purple-500 to-green-400' },
-  { name: 'Arbitrum', color: 'bg-blue-400' },
-  { name: 'Optimism', color: 'bg-red-500' },
+  { name: 'Ethereum Sepolia', color: 'bg-blue-400' },
+  // 以下链暂时注释，上线后启用
+  // { name: 'MACoinChain', color: 'bg-gradient-to-r from-green-500 to-emerald-400' },
+  // { name: 'BSC', color: 'bg-yellow-500' },
+  // { name: 'Polygon', color: 'bg-purple-500' },
+  // { name: 'Solana', color: 'bg-gradient-to-r from-purple-500 to-green-400' },
+  // { name: 'Arbitrum', color: 'bg-blue-400' },
+  // { name: 'Optimism', color: 'bg-red-500' },
 ];
 
 export function HomePage() {
@@ -109,7 +113,7 @@ export function HomePage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <Coins className="h-8 w-8 text-green-400" />
-                  <span className="text-2xl font-bold text-green-400">{t('home.oneToken')}</span>
+                  <span className="text-2xl font-bold text-green-400">{PRICING.TOKEN_DEPLOY} USDT</span>
                 </div>
                 <h3 className="text-xl font-bold mb-2">{t('home.deployToken')}</h3>
                 <p className="text-gray-400 text-sm">{t('home.deployTokenDesc')}</p>
@@ -122,7 +126,7 @@ export function HomePage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <Globe className="h-8 w-8 text-green-400" />
-                  <span className="text-2xl font-bold text-green-400">{t('home.oneToken')}</span>
+                  <span className="text-2xl font-bold text-green-400">{PRICING.DAPP_LISTING} USDT</span>
                 </div>
                 <h3 className="text-xl font-bold mb-2">{t('home.dappEntry')}</h3>
                 <p className="text-gray-400 text-sm">{t('home.dappEntryDesc')}</p>
@@ -135,7 +139,7 @@ export function HomePage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <Wallet className="h-8 w-8 text-green-400" />
-                  <span className="text-2xl font-bold text-green-400">{t('home.oneToken')}</span>
+                  <span className="text-2xl font-bold text-green-400">{PRICING.TOKEN_LISTING} USDT</span>
                 </div>
                 <h3 className="text-xl font-bold mb-2">{t('home.tokenList')}</h3>
                 <p className="text-gray-400 text-sm">{t('home.tokenListDesc')}</p>

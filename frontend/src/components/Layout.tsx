@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet, Coins, Globe, Home, Settings } from 'lucide-react';
+import { Wallet, Coins, Globe, Home, Settings, Mail, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -10,6 +11,7 @@ export function Layout() {
   const location = useLocation();
   const { isAdmin } = useAdmin();
   const { t } = useLanguage();
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const navItems = [
     { path: '/', label: t('nav.home'), icon: Home },
@@ -56,6 +58,14 @@ export function Layout() {
                     </Link>
                   );
                 })}
+                {/* 联系我们按钮 */}
+                <button
+                  onClick={() => setShowContactModal(true)}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all text-gray-400 hover:text-green-400 hover:bg-green-400/5"
+                >
+                  <Mail className="h-4 w-4" />
+                  <span>{t('nav.contact')}</span>
+                </button>
               </nav>
             </div>
             
@@ -76,6 +86,48 @@ export function Layout() {
       <main className="min-h-screen">
         <Outlet />
       </main>
+
+      {/* 联系我们弹窗 */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowContactModal(false)} />
+          <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+            <button
+              onClick={() => setShowContactModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            
+            <div className="text-center space-y-6">
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                <Mail className="h-8 w-8 text-green-400" />
+              </div>
+              
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2">{t('contact.title')}</h2>
+                <p className="text-gray-400">{t('contact.description')}</p>
+              </div>
+              
+              <div className="bg-gray-800/50 rounded-xl p-6 space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">{t('contact.emailLabel')}</p>
+                  <a 
+                    href="mailto:matokens@outlook.com" 
+                    className="text-green-400 hover:text-green-300 font-medium text-lg transition-colors"
+                  >
+                    matokens@outlook.com
+                  </a>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-700">
+                  <p className="text-sm text-gray-400">{t('contact.responseTime')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
