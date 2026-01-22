@@ -1,17 +1,42 @@
 export function GeometricPattern() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* 发光线条 */}
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400 to-transparent opacity-30"></div>
-      <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400 to-transparent opacity-30"></div>
+    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* 流体渐变球 - 霓虹紫到电光蓝 */}
+      <div 
+        className="absolute w-[400px] h-[400px] rounded-full opacity-40 blur-[80px] animate-pulse"
+        style={{
+          background: 'linear-gradient(135deg, #a855f7, #6366f1)',
+          top: '-100px',
+          right: '-100px',
+          animation: 'float 8s ease-in-out infinite'
+        }}
+      />
+      <div 
+        className="absolute w-[300px] h-[300px] rounded-full opacity-40 blur-[80px]"
+        style={{
+          background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+          bottom: '20%',
+          left: '-80px',
+          animation: 'float 8s ease-in-out infinite 4s'
+        }}
+      />
+      <div 
+        className="absolute w-[250px] h-[250px] rounded-full opacity-30 blur-[80px]"
+        style={{
+          background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+          top: '50%',
+          right: '10%',
+          animation: 'float 8s ease-in-out infinite 2s'
+        }}
+      />
       
-      {/* 几何图案 */}
-      <div className="absolute top-20 right-20 w-64 h-64 border border-green-400/20 rotate-45 rounded-lg"></div>
-      <div className="absolute bottom-20 left-20 w-48 h-48 border border-green-400/10 rotate-12 rounded-full"></div>
-      
-      {/* 发光点 */}
-      <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-green-400 rounded-full glow-green"></div>
-      <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-green-400 rounded-full glow-green"></div>
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -30px) scale(1.05); }
+          66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+      `}</style>
     </div>
   );
 }
