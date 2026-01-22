@@ -1,15 +1,48 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { http } from 'wagmi';
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import {
+  injectedWallet,
+  metaMaskWallet,
+  walletConnectWallet,
+  trustWallet,
+  coinbaseWallet,
+  rainbowWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { createConfig, http } from 'wagmi';
 import { supportedChains } from '@/config/chains';
 import type { Chain } from 'viem';
 
-// 获取 WalletConnect Project ID（必须配置才能显示钱包列表）
-const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID';
+// WalletConnect Project ID - 可选，如果没有配置则部分钱包功能受限
+const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'demo-project-id';
 
-// RainbowKit v2 配置 - 使用 getDefaultConfig 自动配置钱包列表
-export const wagmiConfig = getDefaultConfig({
-  appName: 'MaToken',
-  projectId: projectId,
+// 配置钱包列表
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: '推荐钱包',
+      wallets: [
+        injectedWallet,      // 浏览器内置钱包（TokenPocket、MetaMask 等 DApp 浏览器）
+        metaMaskWallet,      // MetaMask
+        trustWallet,         // Trust Wallet
+        coinbaseWallet,      // Coinbase Wallet
+      ],
+    },
+    {
+      groupName: '更多钱包',
+      wallets: [
+        walletConnectWallet, // WalletConnect
+        rainbowWallet,       // Rainbow
+      ],
+    },
+  ],
+  {
+    appName: 'MaToken',
+    projectId: projectId,
+  }
+);
+
+// Wagmi v2 配置
+export const wagmiConfig = createConfig({
+  connectors,
   chains: supportedChains as unknown as readonly [Chain, ...Chain[]],
   transports: supportedChains.reduce(
     (acc, chain) => {
