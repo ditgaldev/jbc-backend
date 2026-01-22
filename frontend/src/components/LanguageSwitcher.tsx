@@ -11,11 +11,11 @@ export function LanguageSwitcher() {
   };
 
   return (
-    <div className="flex items-center space-x-1 bg-gray-800/50 rounded-lg p-1">
+    <div className="inline-flex items-center space-x-1 bg-gray-800/50 rounded-lg p-1 flex-shrink-0">
       <button
         onClick={() => setLanguage('zh')}
         onKeyDown={(e) => handleKeyDown(e, 'zh')}
-        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
           language === 'zh'
             ? 'bg-green-500 text-white'
             : 'text-gray-400 hover:text-white'
@@ -28,7 +28,7 @@ export function LanguageSwitcher() {
       <button
         onClick={() => setLanguage('en')}
         onKeyDown={(e) => handleKeyDown(e, 'en')}
-        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
           language === 'en'
             ? 'bg-green-500 text-white'
             : 'text-gray-400 hover:text-white'

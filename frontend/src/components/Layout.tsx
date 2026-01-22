@@ -90,9 +90,9 @@ export function Layout() {
                           return (
                             <button
                               onClick={openConnectModal}
-                              className="btn-gradient px-5 py-2.5 rounded-xl font-medium text-white flex items-center space-x-2"
+                              className="btn-gradient px-4 py-2.5 rounded-xl font-medium text-white flex items-center space-x-2 whitespace-nowrap text-sm"
                             >
-                              <Wallet className="h-4 w-4" />
+                              <Wallet className="h-4 w-4 flex-shrink-0" />
                               <span>{t('nav.connectWallet') || '连接钱包'}</span>
                             </button>
                           );
@@ -100,9 +100,9 @@ export function Layout() {
                         return (
                           <button
                             onClick={openAccountModal}
-                            className="btn-gradient px-4 py-2.5 rounded-xl font-medium text-white flex items-center space-x-2"
+                            className="btn-gradient px-4 py-2.5 rounded-xl font-medium text-white flex items-center space-x-2 whitespace-nowrap text-sm"
                           >
-                            <Wallet className="h-4 w-4" />
+                            <Wallet className="h-4 w-4 flex-shrink-0" />
                             <span>{account.displayName}</span>
                           </button>
                         );
@@ -151,7 +151,7 @@ export function Layout() {
               <Mail className="h-5 w-5" />
               <span>{t('nav.contact')}</span>
             </button>
-            <div className="pt-2">
+            <div className="pt-2 flex justify-start">
               <LanguageSwitcher />
             </div>
           </div>

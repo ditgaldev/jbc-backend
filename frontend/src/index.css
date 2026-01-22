@@ -118,3 +118,55 @@
   }
 }
 
+/* RainbowKit 钱包弹窗移动端优化 */
+@media (max-width: 768px) {
+  /* 钱包列表容器 - 使用网格布局，每行4个 */
+  [data-rk] [class*="ModalContent"] [class*="WalletList"],
+  [data-rk] div[class*="scroll"] {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+  
+  /* 钱包按钮项 - 紧凑布局 */
+  [data-rk] [class*="WalletButton"],
+  [data-rk] button[data-testid*="wallet"] {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 4px !important;
+    min-width: unset !important;
+    width: 100% !important;
+  }
+  
+  /* 钱包图标 - 适当缩小 */
+  [data-rk] [class*="WalletButton"] img,
+  [data-rk] button[data-testid*="wallet"] img {
+    width: 40px !important;
+    height: 40px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  /* 钱包名称 - 缩小字体 */
+  [data-rk] [class*="WalletButton"] span,
+  [data-rk] button[data-testid*="wallet"] span {
+    font-size: 10px !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    word-break: break-word !important;
+  }
+  
+  /* 弹窗整体宽度 */
+  [data-rk] [class*="Modal"] {
+    max-width: 95vw !important;
+    margin: 0 auto !important;
+  }
+  
+  /* 隐藏钱包描述文字，只保留名称 */
+  [data-rk] [class*="WalletButton"] [class*="description"],
+  [data-rk] button[data-testid*="wallet"] [class*="subtitle"] {
+    display: none !important;
+  }
+}
+
