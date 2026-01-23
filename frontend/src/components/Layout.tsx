@@ -31,9 +31,7 @@ export function Layout() {
             <div className="flex items-center space-x-8">
               {/* Logo */}
               <Link to="/" className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">M</span>
-                </div>
+                <img src="/logo.png" alt="MaToken" className="w-10 h-10 rounded-xl" />
                 <span className="text-xl font-bold text-white tracking-wide">MaToken</span>
               </Link>
               

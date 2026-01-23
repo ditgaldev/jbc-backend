@@ -44,7 +44,7 @@ export const zh = {
     sendEmail: '发送邮件',
   },
   home: {
-    title: 'MaToken eb3 钱包服务',
+    title: 'MaToken Web3 钱包服务',
     titlePrefix: '下一代',
     multiChainSupport: '支持多链生态',
     subtitle: '安全、便捷的去中心化数字钱包，支持多链资产管理，让您的加密资产安全无忧',
